@@ -76,6 +76,7 @@ def call_openai(system: str, user: str) -> dict:
     body = {
         "model": MODEL_NAME,
         "messages": messages,
+        "temperature": 0,
         "response_format": {"type": "json_object"},
     }
     data = post_json(URL_OPENAI, {"Authorization": "Bearer " + API_KEY}, body)

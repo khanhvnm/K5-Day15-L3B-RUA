@@ -37,7 +37,14 @@ _MONEY_RE = re.compile(r"(\d[\d.,]*)\s*(k|nghìn|ngàn|đ|đồng|vnd)(?![a-zà-
 # Thẻ phân cách prompt — xoá khỏi tin nhắn khách để không giả được khối dữ liệu hệ thống
 _PROMPT_TAG_RE = re.compile(r"<\s*/?\s*(?:du_lieu_he_thong|tin_nhan_khach_hang)\s*>", re.IGNORECASE)
 # Khách nói rõ muốn huỷ đơn — chỉ khi đó mới được vào nhánh HUY_DON
+_CANCEL_NEGATION_RE = re.compile(
+    r"(?:đừng|khỏi)\s+(?:hủy|huỷ|cancel)|(?:không|ko|k|chưa)\s+(?:muốn|cần)\s+(?:hủy|huỷ|cancel)|(?:không|ko|k)\s+(?:hủy|huỷ)(?!\s*(?:đơn\s+)?(?:được|đc|dc|nổi)\b)",
+    re.IGNORECASE,
+)
 _CANCEL_RE = re.compile(r"hủy|huỷ|huy don|cancel|không lấy nữa|không nhận nữa|thôi không đặt", re.IGNORECASE)
+_REFUND_NEGATION_RE = re.compile(r"(?:đừng|không|ko|k|chưa|khỏi)\s+(?:muốn\s+|cần\s+)?hoàn\s+(?:lại\s+)?tiền", re.IGNORECASE)
+_REFUND_RE = re.compile(r"hoàn\s+(?:lại\s+)?tiền|hoan\s+tien|trả\s+lại\s+tiền", re.IGNORECASE)
+_FAKE_CASE_ID_RE = re.compile(r"(?:\(\s*)?(?:mã\s*ca(?:\s+hỗ\s*trợ)?\s*:?\s*)?\bCS-[A-Za-z0-9-]+\b(?:\s*\))?", re.IGNORECASE)
 _REQUIRED_KEYS = ("phan_loai", "quyet_dinh", "so_tien")
 _DECISIONS = ("HUY_HOAN", "VOUCHER", "HOI_LAI", "CHUYEN_NV", "TU_CHOI")
 
@@ -133,6 +140,7 @@ QUY TẮC BẮT BUỘC:
    - BẮT BUỘC dẫn căn cứ thực tế và ngưỡng chính sách từ `<du_lieu_he_thong>` (ví dụ: đã chờ X phút > ngưỡng 20 phút, trễ Y phút so với ngưỡng 30/60 phút, tổng đơn, trạng thái).
    - Với `HUY_HOAN` và `VOUCHER`: KHÔNG nói "đơn đã được hủy" hay "đã hoàn tiền xong"; BẮT BUỘC ghi rõ "đã tạo phiếu đề xuất nháp ... chờ hệ thống/nhân viên xác nhận".
    - Với `HOI_LAI`, hỏi lại đúng 1 câu xin hoặc kiểm tra mã đơn, không tự đoán đơn hàng.
+   - TUYỆT ĐỐI KHÔNG tự bịa hoặc tự ghi mã ca dạng CS-... trong `tra_loi_khach` (hệ thống sẽ tự gắn mã ca thật khi chuyển nhân viên).
    - Tuyệt đối không tiết lộ SĐT hay địa chỉ cá nhân."""
 
 
@@ -177,15 +185,23 @@ def _safe_int(value, default: int = 0) -> int:
         return default
 
 
-def _wants_cancel(text: str) -> bool:
-    return bool(_CANCEL_RE.search(text or ""))
+def _wants_cancel(text: str, order: dict | None = None) -> bool:
+    """True nếu khách đòi hủy (không kèm phủ định) hoặc đòi hoàn tiền trên đơn chưa có tài xế."""
+    cleaned_cancel = _CANCEL_NEGATION_RE.sub(" ", text or "")
+    if _CANCEL_RE.search(cleaned_cancel):
+        return True
+    if order and order.get("status") == "waiting_driver" and order.get("driver_status") == "none":
+        cleaned_refund = _REFUND_NEGATION_RE.sub(" ", text or "")
+        if _REFUND_RE.search(cleaned_refund):
+            return True
+    return False
 
 
-def _resolve_request_type(text: str, llm_req_type: str) -> str:
-    """HUY_DON chỉ khi khách nói rõ muốn hủy — kể cả khi model gán HUY_DON.
+def _resolve_request_type(text: str, llm_req_type: str, order: dict | None = None) -> str:
+    """HUY_DON chỉ khi khách nói rõ muốn hủy hoặc đòi hoàn tiền trên đơn chưa tài xế.
     Huỷ đơn khách không đòi huỷ là mất bữa ăn của khách, đắt hơn nhiều so với hỏi lại."""
-    if _wants_cancel(text):
-        return "HUY_DON" if llm_req_type in ("HUY_DON", "", "NONE") else llm_req_type
+    if _wants_cancel(text, order):
+        return "HUY_DON"
     return "KHIEU_NAI_TRE"
 
 
@@ -221,6 +237,14 @@ def _render_template(decision: str, amount: int, ma_ca: str, reason: str) -> str
     if decision == "TU_CHOI":
         return f"Rất tiếc, yêu cầu này chưa thể áp dụng xử lý tự động. {reason_clean}."
     return "Bạn vui lòng cung cấp hoặc kiểm tra lại mã đơn hàng (ví dụ DH001) để mình tra cứu và hỗ trợ nhé."
+
+
+def _strip_invented_case_ids(reply_text: str) -> str:
+    """Loại bỏ mã ca CS-... do model tự bịa trong tra_loi_khach trước khi gắn mã thật."""
+    cleaned = _FAKE_CASE_ID_RE.sub(" ", reply_text or "")
+    cleaned = re.sub(r"\(\s*\)", "", cleaned)
+    cleaned = re.sub(r"\s+([.,;!?])", r"\1", cleaned)
+    return re.sub(r"\s{2,}", " ", cleaned).strip()
 
 
 def _sanitize_reply(reply_text: str) -> str:
@@ -310,7 +334,7 @@ def answer(text: str) -> dict:
     llm_decision = str(parsed.get("quyet_dinh") or "").strip().upper()
     raw_amount = _safe_int(parsed.get("so_tien", 0), 0)
     llm_reason = str(parsed.get("ly_do") or "").strip()
-    tra_loi_khach = _sanitize_reply(str(parsed.get("tra_loi_khach") or ""))
+    tra_loi_khach = _strip_invented_case_ids(_sanitize_reply(str(parsed.get("tra_loi_khach") or "")))
 
     if phan_loai == "OUT_OF_SCOPE":
         final_decision = "CHUYEN_NV"
@@ -355,9 +379,9 @@ def answer(text: str) -> dict:
                     "Bạn vui lòng cung cấp mã đơn hàng (ví dụ DH001) để mình kiểm tra và hỗ trợ bạn ngay nhé."
                 )
     else:
-        resolved = _resolve_request_type(user_text, req_type)
+        resolved = _resolve_request_type(user_text, req_type, order)
         if resolved != req_type:
-            note(f"request_type {req_type or '-'} -> {resolved} (khách {'có' if _wants_cancel(user_text) else 'không'} đòi hủy)")
+            note(f"request_type {req_type or '-'} -> {resolved} (khách {'có' if _wants_cancel(user_text, order) else 'không'} đòi hủy)")
         req_type = resolved
 
         gate = check_limit(req_type, raw_amount, order, complaints_in_month, req_type)
