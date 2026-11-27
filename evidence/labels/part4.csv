@@ -4,7 +4,7 @@ ShopeeFood,d33c017b-3e57-4b37-9a10-03ad64a44c7b,2026-06-18,1,0,1 ⭐ xài ấn k
 Grab,34bf3cc8-ac1d-456b-8512-cfc3dd4817bb,2026-09-25,1,0,appp rách nát đặt món ăn vị trí rất gần nhà mà chờ gần 1h . ghép đơn tùm lum mất thời gian,ghep_don,giao_tre
 ShopeeFood,1701d3a7-aa5b-448e-9a45-a9e5b623e124,2026-11-22,1,2,lỗi địa chỉ nhiều quá,khac,
 Grab,75d1c9f1-3a8a-4444-9f30-22c1f9574911,2026-09-09,1,1,Chiết khấu quá cao tài xế không có cơm để ăn,khac,
-ShopeeFood,f8f867ca-3b1c-4a2f-ac45-e64a60d06806,2026-03-20,1,5,"chăm sóc khách hàng kì cục. hỏi lý do không hoàn tiền, đóng mở ticket 3 lần, bắt liên lạc lại với nhiều bên trong khi chỉ cần tra mã hóa đơn là ra.",cskh_khong_giai_quyet,hoan_tien
+ShopeeFood,f8f867ca-3b1c-4a2f-ac45-e64a60d06806,2026-03-20,1,5,"chăm sóc khách hàng kì cục. hỏi lý do không hoàn tiền, đóng mở ticket 3 lần, bắt liên lạc lại với nhiều bên trong khi chỉ cần tra mã hóa đơn là ra.",hoan_tien,cskh_khong_giai_quyet
 Grab,6d8c7ba2-7398-40c2-86b1-e0c92c09c0c5,2026-01-21,1,0,đặt đồ ăn k dc.k cho hủy,khong_huy_duoc,
 ShopeeFood,5e31c02e-f7dd-43e7-a0fc-b66cd2358e78,2026-03-04,1,0,trời ơi đừng đơn ghép nữa quán có 1.5 km đợi 1 h mới có đồ ăn đói vật vã luôn,ghep_don,giao_tre
 Grab,e9dbe081-30af-445c-9082-594d61f52f34,2026-05-25,1,0,định vị giao đồ ăn sai,khac,
@@ -29,7 +29,7 @@ be,e4ec59b2-2839-4e44-9e8e-d7ec600a908b,2026-08-02,2,4,"đặt đơn food ghép 
 ShopeeFood,9159a170-f24d-467d-9636-cc88655ec6d2,2026-09-04,1,4,app gộp đơn giao cả tiếng. như cái đb,ghep_don,giao_tre
 ShopeeFood,3526f496-3e9e-4db4-81a7-2ac55dc0ba59,2026-05-31,1,1,app như lol đặt từ 12h45 mà tới hơn 2h ms giao muốn hủy đơn cx ko đc,khong_huy_duoc,giao_tre
 ShopeeFood,3e90c6fc-4f25-4ce2-ba0d-13b928cb2194,2026-09-16,1,0,shoppee food chơi ghép đơn kiểu gì mua đồ ăn nóng cách nhà có 4.5 km mà phải mất tới 90 phút giao đến ngụi lạnh hết vải thật,ghep_don,giao_tre
-ShopeeFood,84c36273-3ac5-44b1-a287-1cbf9349fc44,2026-09-16,1,1,"Ê ý là app rất kì, đặt món giao quá lâu ko cho hủy, xong bây giờ thêm phần deal đã mua j đó tao ấn nhầm mất tiền rồi mà còn không hủy được. Tao lúc đầu tưởng mua như bình thường má mãi ms bt đó là deal giảm giá, tao đâu có cần.",khong_huy_duoc,giao_tre;hoan_tien
+ShopeeFood,84c36273-3ac5-44b1-a287-1cbf9349fc44,2026-09-16,1,1,"Ê ý là app rất kì, đặt món giao quá lâu ko cho hủy, xong bây giờ thêm phần deal đã mua j đó tao ấn nhầm mất tiền rồi mà còn không hủy được. Tao lúc đầu tưởng mua như bình thường má mãi ms bt đó là deal giảm giá, tao đâu có cần.",hoan_tien,khong_huy_duoc;giao_tre
 ShopeeFood,bf38109c-9721-43f6-aa1a-4d6ac52300e5,2026-04-21,1,0,"Thật sự cực kì THẤT VỌNG về giao diện của app. Lâu lâu mới vào đặt đồ ăn, đây là lần thứ 2 và cũng là lần cuối.",khac,
 Grab,2686d220-72c7-4445-97b2-be7a65fec603,2026-08-03,1,0,"bữa nay không có mã để ap , giá cao , ship cao mà k có mã thì ăn ngoài cho khoẻ chứ đặt grab phí chịu sao được quá tệ đặt món 120k mà k có mã nào để ap :)",khac,
 ShopeeFood,32dbdcce-282b-4463-a25e-3601d19bbf88,2026-07-30,1,0,book ship càng ngày càng lâu,giao_tre,
@@ -38,6 +38,7 @@ ShopeeFood,a10018f8-5b61-47d5-9ed0-28a7fe5f2048,2026-10-09,1,2,đề nghị đá
 ShopeeFood,5aaffcae-1a4d-4282-a5de-2bdf932d3326,2026-09-02,1,0,"ý là cái mua trùm deal xog bắt thanh toán trc 0 đồg r k có mã freeship là sao cha ,đổi cách thức dùm ,thà mua r cho freeship luôn chứ. Mất mẹ tiền k lớn nhg cx là tiền đấy đần thật .Đếch bao h mua trùm deal ns nhá mốt xoá cái trùm deal dc r.",khac,
 Grab,9b0c7a72-ca88-4ed6-a9d6-d8b094440379,2026-06-08,1,0,đồ ăn giao thường trễ hẹn,giao_tre,
 GreenSM,4a265d5a-81ea-400f-ab58-62f68937cc2a,2026-10-14,2,1,"Đặt đồ ăn bị nhầm mà lỡ bấm xác nhận, nhưng khi mình muốn hủy ngay lúc đó thì ko hủy đc, bấm nhắn tin hay gọi cho giao hàng cx ko đc luôn ? là sao z, cái nút hủy đơn ko xài đc",khong_huy_duoc,
+GreenSM,15b1f12c-8ca6-43ea-b5ad-2bc6b3283b4f,2026-10-05,1,0,quá tệ cùng là quảng đường nhưng xanh lại cao hơn bên grap đến gần 20% giá đó là đả áp mã thành viên rồi nhá ..đặt đồ ăn thì không được .mún ủn hộ hàng việt mà xanh làm thất vọng quá,khac,
 ShopeeFood,79cec71a-a844-4569-ab3f-592df0005e35,2026-01-31,1,4,khoong thể liên hệ trực tiếp nhân viên hỗ trợ,cskh_khong_giai_quyet,
 ShopeeFood,161e48c4-cec8-49a1-b38d-763b547d5a73,2026-03-24,1,3,"mua deal xong thanh toán tiền r, báo lỗi mất deal, cũng k hoàn tiền lại lên báo cáo cũng k đc",hoan_tien,cskh_khong_giai_quyet
 ShopeeFood,b7d1b9f3-ac3c-4e1b-a2ae-87f933326756,2026-05-22,1,4,Mọi người đừng để đôi lúc app lừa trừ tiền ngân hàng,hoan_tien,
@@ -62,7 +63,7 @@ ShopeeFood,6aca5ec6-45bf-4a7f-ac51-fa0363bbf930,2026-06-08,2,0,đặt không bao
 ShopeeFood,f855d26c-b076-4081-b90e-573aa1d14f76,2026-09-16,1,5,đặt đồ nhưng 1 tiếng rưỡi mới nhận đc ?,giao_tre,
 ShopeeFood,4f048a18-7687-450f-9ccc-dee050f1c3be,2026-04-12,1,9,"đặt đồ quá lâu,thời gian dự kiến thay đổi liên tục, đặt đồ ăn 1 tiếng 30p k thấy đâu",giao_tre,
 Grab,ed158846-282e-4ccf-89f8-cb8ad0b31f43,2026-10-21,1,0,quá tệ đồ ăn lại đắt,khac,
-ShopeeFood,c14cb9f6-9a60-46fa-bcde-903cbdacef34,2026-03-04,1,0,"đơn hàng đặt từ 11h30 tới 13h tài xế phán mới tới quán, đang chờ 1 đống khách. không chờ được thì hủy.",cho_tai_xe,giao_tre;ghep_don
+ShopeeFood,c14cb9f6-9a60-46fa-bcde-903cbdacef34,2026-03-04,1,0,"đơn hàng đặt từ 11h30 tới 13h tài xế phán mới tới quán, đang chờ 1 đống khách. không chờ được thì hủy.",cho_tai_xe,ghep_don;giao_tre
 ShopeeFood,fea3c84a-f1e8-4327-9862-0b7efc4a4b2b,2026-06-23,1,0,"Đặt đơn hơn 1h không có tài xế nhận, không cho huỷ đơn",khong_huy_duoc,cho_tai_xe
 GreenSM,8f125d26-9fb8-4810-858d-4f6e293472db,2026-07-29,1,0,"app đặt thức ăn, đặt sai muốn hủy đơn đặt lại không được, ko liên hệ tổng đài hay bất cứ hổ trợ nào.",khong_huy_duoc,cskh_khong_giai_quyet
 ShopeeFood,381c1d9b-f5bd-4855-8f9c-126dcacf1d29,2026-02-16,1,0,Gợi ý món ko để địa chỉ Đến lúc thanh mới báo xa hơn 7km lại để cho cái deal toàn mấy quán xa hơn 7km rồi cuối cùng khách hàng chẳng gọi đc món gì còn mất tiền.,khac,
@@ -70,6 +71,6 @@ GreenSM,da183549-2e65-462d-b30d-653cf7eb11e7,2026-09-23,1,1,"trưa vô đặt m�
 ShopeeFood,9029d173-e81f-44ea-9898-0897f9ef59ac,2026-11-13,1,0,"trả lời nhanh đi làm ơn,chậm quá",giao_tre,
 GreenSM,894d54f2-c00e-41e9-a64a-9077d29ff1f4,2026-05-14,1,0,"ứng dụng đặt đồ ăn UI quá ngớ ngẩn, vừa ấn xong chưa kịp cho review thông tin đã nhảy, 1s sau khách hủy đã k cho, bộ mắc khách, sợ khách đổi ý lắm hay gì?? đội dev qua shopee food mà học tập nhé",khong_huy_duoc,khac
 ShopeeFood,e6facdb0-c847-4ba1-9d4c-fc2319a0777e,2026-02-22,1,0,chỉnh phạm vi giao hàng ngắn quá,khac,
-ShopeeFood,28417025-1df4-4a64-9da1-c6acc9d6859c,2026-08-14,1,0,"giao siêu lâu, các shop k bán thì k hủy đơn cho khách luôn đi, làm khách đợi gần 15p ms hủy",giao_tre,khong_huy_duoc
+ShopeeFood,28417025-1df4-4a64-9da1-c6acc9d6859c,2026-08-14,1,0,"giao siêu lâu, các shop k bán thì k hủy đơn cho khách luôn đi, làm khách đợi gần 15p ms hủy",khong_huy_duoc,giao_tre
 ShopeeFood,3c8875d9-3c2b-4980-b7ee-189c1dfb74b4,2026-07-13,1,0,vl đặt địa chỉ cứ bị dịch ra chỗ khác,khac,
 ShopeeFood,efc4b92a-1012-41eb-b33e-18311f16b66f,2026-08-04,1,4,"tối ngày đơn kép, đặt đợi mòn mỏi",ghep_don,giao_tre

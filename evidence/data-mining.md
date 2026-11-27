@@ -55,7 +55,17 @@ Lý do xếp thứ tự: nhãn cụ thể hơn đứng trước nhãn chung (`gi
 | `thieu_sai_mon` | `/300` | | | Chờ tổng hợp CP3 |
 | `khac` | `/300` | | | Chờ tổng hợp CP3 |
 
-- Độ khớp gắn nhãn chéo (`30` dòng chung giữa Duy Thành và Khánh): `__/30`.
+- Độ khớp gắn nhãn chéo (`30` dòng chung giữa Duy Thành và Khánh): `30/30` nhãn chính (`26/30` trùng cả `ghi_chu`) — đây là **Duy Thành ↔ nhãn AI gợi ý đã được Khánh duyệt**, không phải giữa 2 người gắn tay; xem lưu ý dưới.
+
+**Tiến độ gắn nhãn (23:25 27/11):** đủ `300/300` dòng + `30/30` dòng chung, `python evidence/scripts/sample_reviews.py --verify` khớp `seed=42` cả 5 file.
+
+**Lưu ý trước khi báo độ khớp:**
+- `part1.csv` (phần của Khánh) do **Claude Code gợi ý nhãn** theo định nghĩa + luật ưu tiên ở mục 2, Khánh duyệt lại (khai ở `docs/ai-usage.md`). Vì vậy so `overlap_30_thanh.csv` với `part1.csv` là đo **Duy Thành ↔ AI**, không phải giữa 2 người.
+- Bản so thô cho `30/30` nhãn chính trùng và `26/30` dòng trùng cả `ghi_chu`; file chung được commit sau khi `part1.csv` đã lên `main` 18 phút. Duy Thành đã xác nhận gắn **không nhìn** `part1.csv` (23:40 27/11).
+
+**Sửa sau review (23:25 27/11, nhánh `evidence/cp2-finalize`):**
+- `part4.csv` thiếu 1 dòng (`review_id 15b1f12c-…`, GreenSM, so giá với Grab) làm `--verify` báo lệch seed → chèn lại đúng vị trí 40, gắn `khac` *(Claude Code gắn, Việt Anh đã xác nhận)*.
+- 5 dòng đặt nhãn chính trái luật ưu tiên mục 2 → đảo lại theo luật, không đổi tập nhãn của dòng (Vũ Thành, Việt Anh đã xác nhận): `part2` #56 (`cho_tai_xe` → `khong_huy_duoc`) · `part4` #6 (`cskh_khong_giai_quyet` → `hoan_tien`) · #31 (`khong_huy_duoc` → `hoan_tien`) · #72 (`giao_tre` → `khong_huy_duoc`) · #43 chỉ sắp lại thứ tự `ghi_chu`.
 
 ## 4. ≥5 ví dụ cụ thể *(chốt trích dẫn kiểm chứng ở CP3-4)*
 
