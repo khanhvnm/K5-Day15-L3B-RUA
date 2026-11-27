@@ -1,0 +1,652 @@
+[
+  {
+    "order_id": "DH001",
+    "user_id": "U01",
+    "restaurant": "Quán Mẫu 2",
+    "items": [
+      {
+        "name": "Cơm gà xối mỡ",
+        "qty": 1,
+        "price": 50000
+      }
+    ],
+    "ship_fee": 15000,
+    "total": 65000,
+    "placed_at": "2026-11-27T11:00",
+    "eta": "2026-11-27T11:30",
+    "now": "2026-11-27T11:15",
+    "status": "waiting_driver",
+    "driver_status": "none",
+    "is_batched": false,
+    "restaurant_prepared": false
+  },
+  {
+    "order_id": "DH002",
+    "user_id": "U02",
+    "restaurant": "Quán Mẫu 3",
+    "items": [
+      {
+        "name": "Bún bò Huế",
+        "qty": 1,
+        "price": 65000
+      }
+    ],
+    "ship_fee": 15000,
+    "total": 80000,
+    "placed_at": "2026-11-27T11:20",
+    "eta": "2026-11-27T11:50",
+    "now": "2026-11-27T11:40",
+    "status": "waiting_driver",
+    "driver_status": "none",
+    "is_batched": false,
+    "restaurant_prepared": false
+  },
+  {
+    "order_id": "DH003",
+    "user_id": "U03",
+    "restaurant": "Quán Mẫu 4",
+    "items": [
+      {
+        "name": "Cơm tấm sườn bì chả",
+        "qty": 1,
+        "price": 50000
+      },
+      {
+        "name": "Trà sữa trân châu",
+        "qty": 1,
+        "price": 45000
+      }
+    ],
+    "ship_fee": 15000,
+    "total": 110000,
+    "placed_at": "2026-11-27T11:35",
+    "eta": "2026-11-27T12:05",
+    "now": "2026-11-27T11:56",
+    "status": "waiting_driver",
+    "driver_status": "none",
+    "is_batched": false,
+    "restaurant_prepared": false
+  },
+  {
+    "order_id": "DH004",
+    "user_id": "U04",
+    "restaurant": "Quán Mẫu 5",
+    "items": [
+      {
+        "name": "Phở bò tái chín",
+        "qty": 1,
+        "price": 55000
+      },
+      {
+        "name": "Trà đào cam sả",
+        "qty": 1,
+        "price": 25000
+      }
+    ],
+    "ship_fee": 15000,
+    "total": 95000,
+    "placed_at": "2026-11-27T11:50",
+    "eta": "2026-11-27T12:20",
+    "now": "2026-11-27T12:15",
+    "status": "waiting_driver",
+    "driver_status": "none",
+    "is_batched": false,
+    "restaurant_prepared": false
+  },
+  {
+    "order_id": "DH005",
+    "user_id": "U05",
+    "restaurant": "Quán Mẫu 6",
+    "items": [
+      {
+        "name": "Mì xào hải sản",
+        "qty": 2,
+        "price": 62500
+      }
+    ],
+    "ship_fee": 15000,
+    "total": 140000,
+    "placed_at": "2026-11-27T11:00",
+    "eta": "2026-11-27T11:35",
+    "now": "2026-11-27T12:30",
+    "status": "waiting_driver",
+    "driver_status": "none",
+    "is_batched": false,
+    "restaurant_prepared": false
+  },
+  {
+    "order_id": "DH006",
+    "user_id": "U06",
+    "restaurant": "Quán Mẫu 7",
+    "items": [
+      {
+        "name": "Phần ăn tiệc văn phòng",
+        "qty": 10,
+        "price": 48000
+      }
+    ],
+    "ship_fee": 20000,
+    "total": 500000,
+    "placed_at": "2026-11-27T12:00",
+    "eta": "2026-11-27T12:30",
+    "now": "2026-11-27T12:25",
+    "status": "waiting_driver",
+    "driver_status": "none",
+    "is_batched": false,
+    "restaurant_prepared": false
+  },
+  {
+    "order_id": "DH007",
+    "user_id": "U09",
+    "restaurant": "Quán Mẫu 8",
+    "items": [
+      {
+        "name": "Phần ăn tiệc văn phòng",
+        "qty": 6,
+        "price": 47500
+      }
+    ],
+    "ship_fee": 15000,
+    "total": 300000,
+    "placed_at": "2026-11-27T12:20",
+    "eta": "2026-11-27T12:50",
+    "now": "2026-11-27T12:45",
+    "status": "waiting_driver",
+    "driver_status": "none",
+    "is_batched": false,
+    "restaurant_prepared": false
+  },
+  {
+    "order_id": "DH008",
+    "user_id": "U10",
+    "restaurant": "Quán Mẫu 9",
+    "items": [
+      {
+        "name": "Combo tiệc văn phòng",
+        "qty": 1,
+        "price": 285001
+      }
+    ],
+    "ship_fee": 15000,
+    "total": 300001,
+    "placed_at": "2026-11-27T12:30",
+    "eta": "2026-11-27T13:00",
+    "now": "2026-11-27T12:55",
+    "status": "waiting_driver",
+    "driver_status": "none",
+    "is_batched": false,
+    "restaurant_prepared": false
+  },
+  {
+    "order_id": "DH009",
+    "user_id": "U11",
+    "restaurant": "Quán Mẫu 10",
+    "items": [
+      {
+        "name": "Bún chả Hà Nội",
+        "qty": 2,
+        "price": 45000
+      }
+    ],
+    "ship_fee": 15000,
+    "total": 105000,
+    "placed_at": "2026-11-27T12:40",
+    "eta": "2026-11-27T13:10",
+    "now": "2026-11-27T13:05",
+    "status": "waiting_driver",
+    "driver_status": "none",
+    "is_batched": false,
+    "restaurant_prepared": true
+  },
+  {
+    "order_id": "DH010",
+    "user_id": "U12",
+    "restaurant": "Quán Mẫu 11",
+    "items": [
+      {
+        "name": "Cơm tấm sườn bì chả",
+        "qty": 2,
+        "price": 55000
+      }
+    ],
+    "ship_fee": 15000,
+    "total": 125000,
+    "placed_at": "2026-11-27T12:50",
+    "eta": "2026-11-27T13:20",
+    "now": "2026-11-27T13:30",
+    "status": "delivering",
+    "driver_status": "picked_up",
+    "is_batched": false,
+    "restaurant_prepared": true
+  },
+  {
+    "order_id": "DH011",
+    "user_id": "U01",
+    "restaurant": "Quán Mẫu 12",
+    "items": [
+      {
+        "name": "Cơm gà xối mỡ",
+        "qty": 1,
+        "price": 55000
+      }
+    ],
+    "ship_fee": 15000,
+    "total": 70000,
+    "placed_at": "2026-11-27T11:25",
+    "eta": "2026-11-27T11:55",
+    "now": "2026-11-27T12:24",
+    "status": "delivering",
+    "driver_status": "picked_up",
+    "is_batched": true,
+    "restaurant_prepared": true
+  },
+  {
+    "order_id": "DH012",
+    "user_id": "U02",
+    "restaurant": "Quán Mẫu 13",
+    "items": [
+      {
+        "name": "Bún bò Huế",
+        "qty": 1,
+        "price": 60000
+      }
+    ],
+    "ship_fee": 15000,
+    "total": 75000,
+    "placed_at": "2026-11-27T11:30",
+    "eta": "2026-11-27T12:00",
+    "now": "2026-11-27T12:30",
+    "status": "delivering",
+    "driver_status": "picked_up",
+    "is_batched": true,
+    "restaurant_prepared": true
+  },
+  {
+    "order_id": "DH013",
+    "user_id": "U03",
+    "restaurant": "Quán Mẫu 14",
+    "items": [
+      {
+        "name": "Phở bò tái chín",
+        "qty": 1,
+        "price": 70000
+      }
+    ],
+    "ship_fee": 15000,
+    "total": 85000,
+    "placed_at": "2026-11-27T11:40",
+    "eta": "2026-11-27T12:10",
+    "now": "2026-11-27T12:41",
+    "status": "delivering",
+    "driver_status": "picked_up",
+    "is_batched": true,
+    "restaurant_prepared": true
+  },
+  {
+    "order_id": "DH014",
+    "user_id": "U04",
+    "restaurant": "Quán Mẫu 15",
+    "items": [
+      {
+        "name": "Bánh mì thập cẩm",
+        "qty": 1,
+        "price": 15000
+      }
+    ],
+    "ship_fee": 7000,
+    "total": 22000,
+    "placed_at": "2026-11-27T11:45",
+    "eta": "2026-11-27T12:15",
+    "now": "2026-11-27T12:50",
+    "status": "delivering",
+    "driver_status": "picked_up",
+    "is_batched": true,
+    "restaurant_prepared": true
+  },
+  {
+    "order_id": "DH015",
+    "user_id": "U05",
+    "restaurant": "Quán Mẫu 1",
+    "items": [
+      {
+        "name": "Mì xào hải sản",
+        "qty": 1,
+        "price": 65000
+      },
+      {
+        "name": "Trà đào cam sả",
+        "qty": 1,
+        "price": 40000
+      }
+    ],
+    "ship_fee": 15000,
+    "total": 120000,
+    "placed_at": "2026-11-27T11:55",
+    "eta": "2026-11-27T12:20",
+    "now": "2026-11-27T13:05",
+    "status": "delivering",
+    "driver_status": "picked_up",
+    "is_batched": true,
+    "restaurant_prepared": true
+  },
+  {
+    "order_id": "DH016",
+    "user_id": "U06",
+    "restaurant": "Quán Mẫu 2",
+    "items": [
+      {
+        "name": "Cơm tấm sườn bì chả",
+        "qty": 2,
+        "price": 50000
+      }
+    ],
+    "ship_fee": 15000,
+    "total": 115000,
+    "placed_at": "2026-11-27T12:05",
+    "eta": "2026-11-27T12:35",
+    "now": "2026-11-27T13:35",
+    "status": "delivering",
+    "driver_status": "picked_up",
+    "is_batched": true,
+    "restaurant_prepared": true
+  },
+  {
+    "order_id": "DH017",
+    "user_id": "U09",
+    "restaurant": "Quán Mẫu 3",
+    "items": [
+      {
+        "name": "Bún bò Huế",
+        "qty": 2,
+        "price": 65000
+      }
+    ],
+    "ship_fee": 20000,
+    "total": 150000,
+    "placed_at": "2026-11-27T12:10",
+    "eta": "2026-11-27T12:40",
+    "now": "2026-11-27T13:41",
+    "status": "delivering",
+    "driver_status": "picked_up",
+    "is_batched": true,
+    "restaurant_prepared": true
+  },
+  {
+    "order_id": "DH018",
+    "user_id": "U10",
+    "restaurant": "Quán Mẫu 4",
+    "items": [
+      {
+        "name": "Mì xào hải sản",
+        "qty": 2,
+        "price": 80000
+      }
+    ],
+    "ship_fee": 20000,
+    "total": 180000,
+    "placed_at": "2026-11-27T12:15",
+    "eta": "2026-11-27T12:45",
+    "now": "2026-11-27T13:50",
+    "status": "delivering",
+    "driver_status": "picked_up",
+    "is_batched": true,
+    "restaurant_prepared": true
+  },
+  {
+    "order_id": "DH019",
+    "user_id": "U11",
+    "restaurant": "Quán Mẫu 5",
+    "items": [
+      {
+        "name": "Cơm gà xối mỡ",
+        "qty": 1,
+        "price": 45000
+      }
+    ],
+    "ship_fee": 15000,
+    "total": 60000,
+    "placed_at": "2026-11-27T10:40",
+    "eta": "2026-11-27T11:10",
+    "now": "2026-11-27T11:05",
+    "status": "delivered",
+    "driver_status": "picked_up",
+    "is_batched": false,
+    "restaurant_prepared": true
+  },
+  {
+    "order_id": "DH020",
+    "user_id": "U12",
+    "restaurant": "Quán Mẫu 6",
+    "items": [
+      {
+        "name": "Bún chả Hà Nội",
+        "qty": 1,
+        "price": 50000
+      }
+    ],
+    "ship_fee": 15000,
+    "total": 65000,
+    "placed_at": "2026-11-27T13:00",
+    "eta": "2026-11-27T13:30",
+    "now": "2026-11-27T13:20",
+    "status": "delivering",
+    "driver_status": "assigned",
+    "is_batched": false,
+    "restaurant_prepared": true
+  },
+  {
+    "order_id": "DH021",
+    "user_id": "U13",
+    "restaurant": "Quán Mẫu 7",
+    "items": [
+      {
+        "name": "Combo tiệc văn phòng (ưu đãi)",
+        "qty": 1,
+        "price": 284999
+      }
+    ],
+    "ship_fee": 15000,
+    "total": 299999,
+    "placed_at": "2026-11-27T13:10",
+    "eta": "2026-11-27T13:40",
+    "now": "2026-11-27T13:35",
+    "status": "waiting_driver",
+    "driver_status": "none",
+    "is_batched": false,
+    "restaurant_prepared": false
+  },
+  {
+    "order_id": "DH022",
+    "user_id": "U14",
+    "restaurant": "Quán Mẫu 8",
+    "items": [
+      {
+        "name": "Phở bò tái chín",
+        "qty": 1,
+        "price": 55000
+      }
+    ],
+    "ship_fee": 15000,
+    "total": 70000,
+    "placed_at": "2026-11-27T10:45",
+    "eta": "2026-11-27T11:15",
+    "now": "2026-11-27T11:20",
+    "status": "cancelled",
+    "driver_status": "none",
+    "is_batched": false,
+    "restaurant_prepared": false
+  },
+  {
+    "order_id": "DH023",
+    "user_id": "U07",
+    "restaurant": "Quán Mẫu 9",
+    "items": [
+      {
+        "name": "Cơm tấm sườn bì chả",
+        "qty": 1,
+        "price": 80000
+      }
+    ],
+    "ship_fee": 15000,
+    "total": 95000,
+    "placed_at": "2026-11-27T12:25",
+    "eta": "2026-11-27T12:55",
+    "now": "2026-11-27T13:33",
+    "status": "delivering",
+    "driver_status": "picked_up",
+    "is_batched": true,
+    "restaurant_prepared": true
+  },
+  {
+    "order_id": "DH024",
+    "user_id": "U08",
+    "restaurant": "Quán Mẫu 10",
+    "items": [
+      {
+        "name": "Bún bò Huế",
+        "qty": 1,
+        "price": 70000
+      }
+    ],
+    "ship_fee": 15000,
+    "total": 85000,
+    "placed_at": "2026-11-27T12:35",
+    "eta": "2026-11-27T13:05",
+    "now": "2026-11-27T13:03",
+    "status": "waiting_driver",
+    "driver_status": "none",
+    "is_batched": false,
+    "restaurant_prepared": false
+  },
+  {
+    "order_id": "DH025",
+    "user_id": "U15",
+    "restaurant": "Quán Mẫu 11",
+    "items": [
+      {
+        "name": "Mì xào hải sản",
+        "qty": 1,
+        "price": 75000
+      }
+    ],
+    "ship_fee": 15000,
+    "total": 90000,
+    "placed_at": "2026-11-27T12:45",
+    "eta": "2026-11-27T13:15",
+    "now": "2026-11-27T13:57",
+    "status": "delivering",
+    "driver_status": "picked_up",
+    "is_batched": true,
+    "restaurant_prepared": true
+  },
+  {
+    "order_id": "DH026",
+    "user_id": "U16",
+    "restaurant": "Quán Mẫu 12",
+    "items": [
+      {
+        "name": "Cơm gà xối mỡ",
+        "qty": 1,
+        "price": 45000
+      },
+      {
+        "name": "Trà sữa trân châu",
+        "qty": 1,
+        "price": 25000
+      }
+    ],
+    "ship_fee": 15000,
+    "total": 85000,
+    "placed_at": "2026-11-27T10:50",
+    "eta": "2026-11-27T11:20",
+    "now": "2026-11-27T11:25",
+    "status": "delivered",
+    "driver_status": "picked_up",
+    "is_batched": false,
+    "restaurant_prepared": true
+  },
+  {
+    "order_id": "DH027",
+    "user_id": "U17",
+    "restaurant": "Quán Mẫu 13",
+    "items": [
+      {
+        "name": "Bún bò Huế",
+        "qty": 1,
+        "price": 55000
+      }
+    ],
+    "ship_fee": 15000,
+    "total": 70000,
+    "placed_at": "2026-11-27T10:55",
+    "eta": "2026-11-27T11:25",
+    "now": "2026-11-27T11:27",
+    "status": "delivered",
+    "driver_status": "picked_up",
+    "is_batched": false,
+    "restaurant_prepared": true
+  },
+  {
+    "order_id": "DH028",
+    "user_id": "U18",
+    "restaurant": "Quán Mẫu 14",
+    "items": [
+      {
+        "name": "Bún chả Hà Nội",
+        "qty": 2,
+        "price": 45000
+      }
+    ],
+    "ship_fee": 15000,
+    "total": 105000,
+    "placed_at": "2026-11-27T12:55",
+    "eta": "2026-11-27T13:25",
+    "now": "2026-11-27T13:17",
+    "status": "delivering",
+    "driver_status": "assigned",
+    "is_batched": false,
+    "restaurant_prepared": true
+  },
+  {
+    "order_id": "DH029",
+    "user_id": "U13",
+    "restaurant": "Quán Mẫu 15",
+    "items": [
+      {
+        "name": "Bánh mì thập cẩm",
+        "qty": 1,
+        "price": 30000
+      }
+    ],
+    "ship_fee": 10000,
+    "total": 40000,
+    "placed_at": "2026-11-27T13:15",
+    "eta": "2026-11-27T13:40",
+    "now": "2026-11-27T14:15",
+    "status": "delivering",
+    "driver_status": "picked_up",
+    "is_batched": false,
+    "restaurant_prepared": true
+  },
+  {
+    "order_id": "DH030",
+    "user_id": "U14",
+    "restaurant": "Quán Mẫu 1",
+    "items": [
+      {
+        "name": "Cơm gà xối mỡ",
+        "qty": 1,
+        "price": 70000
+      }
+    ],
+    "ship_fee": 15000,
+    "total": 85000,
+    "placed_at": "2026-11-27T13:20",
+    "eta": "2026-11-27T13:50",
+    "now": "2026-11-27T14:05",
+    "status": "waiting_driver",
+    "driver_status": "picked_up",
+    "is_batched": false,
+    "restaurant_prepared": true
+  }
+]
