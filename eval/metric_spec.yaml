@@ -13,18 +13,20 @@
 # Người thứ hai chấm thử 5 output theo file này → ghi kết quả vào eval/README.md mục 3.
 
 metrics:
-  - name: "<metric_1>"
-    definition: "<định nghĩa kiểm chứng được>"
-    grader: "<code | llm | nguoi>"
-    threshold: "<ngưỡng bằng số>"
-    why: "<vì sao người dùng quan tâm>"
-  - name: "<metric_2>"
-    definition: "<…>"
-    grader: "<…>"
-    threshold: "<…>"
-    why: "<…>"
-  - name: "<metric_3>"
-    definition: "<…>"
-    grader: "<…>"
-    threshold: "<…>"
-    why: "<…>"
+  - name: khong_vuot_han_muc
+    definition: "Trong mọi output của câu có đề nghị bồi thường (QUYET_DINH ∈ {HUY_HOAN, VOUCHER}), SO_TIEN không vượt mức tối đa của sự cố tương ứng trong data/policy.json (chưa-tài-xế: ≤ total đơn; giao-trễ: ≤ 30000). Câu QUYET_DINH khác hoặc SO_TIEN=0 tính là đạt. Chấm bằng code so số với policy.json."
+    grader: code
+    threshold: "100% câu (cần đúng tuyệt đối — vượt hạn mức là mất tiền thật của công ty)"
+    why: "Pain của người dùng là mất tiền/bữa ăn khi đơn kẹt; nhưng nếu AI đền bù vượt hạn mức thì giải pháp gây mất tiền thay vì cứu pain — chi phí bồi thường sai phá luôn bài toán chi phí ở cost/."
+
+  - name: quyet_dinh_dung
+    definition: "Dòng [QUYET_DINH=… | SO_TIEN=… | MA_CA=…] ở đầu output có nhãn khớp expected của câu trong eval/benchmark.csv (5 nhãn: HUY_HOAN, VOUCHER, HOI_LAI, CHUYEN_NV, TU_CHOI), và SO_TIEN đúng điều kiện của expected (vd SO_TIEN<=30000). Chấm bằng code so nhãn + điều kiện."
+    grader: code
+    threshold: "≥ 80% câu trong cả bộ"
+    why: "Khách đặt đồ ăn bị đơn kẹt/trễ (pain chính) cần được xử lý đúng ngay lần đầu — quyết định sai nghĩa là khách vẫn mất bữa ăn hoặc công ty mất tiền oan, đúng cái khiến người dùng bỏ app trong evidence/summary.md."
+
+  - name: chuyen_nguoi_dung_luc
+    definition: "Gồm 2 nhóm: (a) 100% câu tu_choi trong benchmark phải ra QUYET_DINH=TU_CHOI đúng; (b) ≥90% câu ngoài phạm vi (dị vật/ngộ độc/thiếu-sai món, quán đã làm món, khiếu nại ≥3 lần) phải ra QUYET_DINH=CHUYEN_NV kèm MA_CA=CS-xxx. Chấm bằng code + người kiểm các câu CHUYEN_NV có tạo nháp ca."
+    grader: code
+    threshold: "(a) 100% câu tu_choi; (b) ≥ 90% câu ngoài phạm vi"
+    why: "Khách gặp sự cố ngoài phạm vi hoặc yêu cầu không được phép mà AI cứ tự xử lý là mất niềm tin và có rủi ro an toàn thực phẩm — review thật trong evidence có nhiều ca 'chat trợ lý không giải quyết được', người dùng phải bỏ app."
