@@ -10,27 +10,13 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import random
 from datetime import datetime, timedelta
 
-SEED = 42
 DATA_DIR = os.path.dirname(os.path.abspath(__file__))
 ORDERS_PATH = os.path.join(DATA_DIR, "orders.json")
 HISTORY_PATH = os.path.join(DATA_DIR, "complaint_history.json")
+POLICY_PATH = os.path.join(DATA_DIR, "policy.json")
 BASE_DAY = datetime(2026, 11, 27, 10, 0)
-
-DISH_CATALOG = [
-    ("Cơm gà xối mỡ", 45000),
-    ("Bún bò Huế", 55000),
-    ("Trà sữa trân châu", 25000),
-    ("Cơm tấm sườn bì chả", 50000),
-    ("Phở bò tái chín", 55000),
-    ("Bánh mì thập cẩm", 20000),
-    ("Mì xào hải sản", 65000),
-    ("Trà đào cam sả", 30000),
-    ("Bún chả Hà Nội", 45000),
-    ("Phần ăn tiệc văn phòng", 48000),
-]
 
 # Đặc tả 30 kịch bản phủ đủ toàn bộ ca CP2-1 trong docs/plan.md và biên chính sách 300k/500k
 # (order_id, user_id, placed_offset_min, eta_offset_min, elapsed_min, delay_min,
@@ -109,7 +95,7 @@ SCENARIO_SPECS: list[tuple] = [
         False,
         [("Mì xào hải sản", 2, 62500)],
         15000,
-        "Chưa tài xế 90', quán chưa nấu, ETA tre 55' (<=60p), total 140k -> HUY_HOAN",
+        "Chưa tài xế 90', quán chưa nấu, total 140k: HUY_DON -> HUY_HOAN; KHIEU_NAI_TRE (trễ 55') -> VOUCHER 30k",
     ),
     (
         "DH006",
@@ -319,7 +305,7 @@ SCENARIO_SPECS: list[tuple] = [
         True,
         [("Cơm gà xối mỡ", 1, 45000)],
         15000,
-        "Đơn đã giao đúng giờ (-5')",
+        "Đơn đã giao đúng giờ (-5'): KHIEU_NAI_TRE -> TU_CHOI",
     ),
     (
         "DH020",
@@ -334,7 +320,7 @@ SCENARIO_SPECS: list[tuple] = [
         True,
         [("Bún chả Hà Nội", 1, 50000)],
         15000,
-        "Đơn đang giao còn trong hạn (-10')",
+        "Đơn đang giao (tài xế assigned) còn trong hạn (-10'): KHIEU_NAI_TRE -> TU_CHOI; HUY_DON -> CHUYEN_NV",
     ),
     (
         "DH021",
@@ -364,7 +350,7 @@ SCENARIO_SPECS: list[tuple] = [
         False,
         [("Phở bò tái chín", 1, 55000)],
         15000,
-        "Đơn đã hủy/hoàn trước đó — test chặn bồi thường trùng nếu đòi hoàn lại",
+        "Đơn đã hủy/hoàn trước đó, đòi hoàn/voucher lại -> TU_CHOI (bồi thường trùng)",
     ),
     (
         "DH023",
@@ -454,7 +440,7 @@ SCENARIO_SPECS: list[tuple] = [
         True,
         [("Bún chả Hà Nội", 2, 45000)],
         15000,
-        "Đơn đang giao — dùng test đòi đổi địa chỉ / SĐT tài xế",
+        "Đơn đang giao (tài xế assigned): đòi SĐT tài xế -> TU_CHOI; đổi địa chỉ -> CHUYEN_NV",
     ),
     (
         "DH029",
@@ -469,7 +455,7 @@ SCENARIO_SPECS: list[tuple] = [
         True,
         [("Bánh mì thập cẩm", 1, 30000)],
         10000,
-        "Đơn giá trị trung vị 40k trễ 35' không ghép -> VOUCHER 30k",
+        "Đơn 40k trễ 35' không ghép -> VOUCHER 30k",
     ),
     (
         "DH030",
@@ -510,9 +496,9 @@ COMPLAINT_HISTORY: dict[str, int] = {
 }
 
 
-def build_orders(seed: int = SEED) -> tuple[list[dict], list[tuple[str, str]]]:
-    """Sinh danh sách đơn hàng cố định theo seed và trả kèm bảng tra cứu ca thử."""
-    rng = random.Random(seed)
+def build_orders() -> tuple[list[dict], list[tuple[str, str]]]:
+    """Dựng danh sách đơn từ SCENARIO_SPECS (xác định hoàn toàn, không ngẫu nhiên)
+    và trả kèm bảng tra cứu order_id -> ca thử."""
     orders: list[dict] = []
     case_map: list[tuple[str, str]] = []
 
@@ -542,8 +528,7 @@ def build_orders(seed: int = SEED) -> tuple[list[dict], list[tuple[str, str]]]:
         ]
         subtotal = sum(it["qty"] * it["price"] for it in items)
         total = subtotal + ship_fee
-        # Chọn quán mẫu xác định theo seed cố định
-        rest_num = ((idx + rng.randint(0, 0)) % 15) + 1
+        rest_num = (idx % 15) + 1
 
         orders.append(
             {
@@ -567,8 +552,15 @@ def build_orders(seed: int = SEED) -> tuple[list[dict], list[tuple[str, str]]]:
     return orders, case_map
 
 
-def validate_orders(orders: list[dict], history: dict[str, int]) -> None:
-    """Kiểm tra chặt chẽ schema, công thức tiền, không PII và độ phủ ca CP2-1."""
+# Đơn được cố ý dựng với cặp trạng thái mâu thuẫn (test inconsistent_order_state)
+EXPECTED_INCONSISTENT = {"DH030"}
+
+
+def validate_orders(
+    orders: list[dict], history: dict[str, int], policy: dict
+) -> None:
+    """Kiểm tra chặt chẽ schema, công thức tiền, không PII, độ phủ ca CP2-1
+    và khớp với policy.json."""
     assert 25 <= len(orders) <= 30, f"Số đơn phải từ 25–30, đang có {len(orders)}"
     seen_ids = set()
     for o in orders:
@@ -596,6 +588,23 @@ def validate_orders(orders: list[dict], history: dict[str, int]) -> None:
     ), "Thiếu ca trạng thái mâu thuẫn"
     assert sum(1 for v in history.values() if v >= 3) >= 2, "Cần >=2 user khiếu nại >=3"
 
+    # Khớp với policy.json
+    combos = policy["valid_status_combos"]
+    inconsistent = {
+        o["order_id"]
+        for o in orders
+        if o["driver_status"] not in combos.get(o["status"], [])
+    }
+    assert inconsistent == EXPECTED_INCONSISTENT, (
+        f"Đơn có trạng thái mâu thuẫn ngoài dự kiến: {inconsistent}"
+    )
+    assert all(o["user_id"] in history for o in orders), "Có user không có trong history"
+    caps = policy["global_caps"]
+    assert caps["max_auto_refund_vnd"] == 300000 and caps["max_auto_voucher_vnd"] == 30000
+    assert len(policy["rules"]) == 13, "DATA_CARD ghi 13 rules"
+    for r in policy["rules"]:
+        assert r["max_action"] in policy["allowed_decisions"], r["issue_type"]
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(
@@ -608,8 +617,10 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    orders, case_map = build_orders(SEED)
-    validate_orders(orders, COMPLAINT_HISTORY)
+    orders, case_map = build_orders()
+    with open(POLICY_PATH, encoding="utf-8") as f:
+        policy = json.load(f)
+    validate_orders(orders, COMPLAINT_HISTORY, policy)
 
     orders_txt = json.dumps(orders, ensure_ascii=False, indent=2) + "\n"
     hist_txt = json.dumps(COMPLAINT_HISTORY, ensure_ascii=False, indent=2) + "\n"
@@ -617,12 +628,12 @@ def main() -> int:
     if args.verify:
         with open(ORDERS_PATH, encoding="utf-8") as f:
             assert f.read() == orders_txt, (
-                "orders.json không khớp kết quả sinh lại từ seed=42!"
+                "orders.json không khớp kết quả sinh lại từ gen_orders.py!"
             )
         with open(HISTORY_PATH, encoding="utf-8") as f:
             assert f.read() == hist_txt, "complaint_history.json không khớp!"
         print(
-            f"OK: {len(orders)} đơn hàng và {len(COMPLAINT_HISTORY)} users khớp 100% seed={SEED}."
+            f"OK: {len(orders)} đơn hàng và {len(COMPLAINT_HISTORY)} users khớp 100% với gen_orders.py; policy.json hợp lệ."
         )
         for oid, note in case_map:
             print(f"  {oid}: {note}")
