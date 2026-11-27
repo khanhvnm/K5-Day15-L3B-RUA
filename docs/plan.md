@@ -247,9 +247,9 @@ Thứ tự: 17:00–17:20 cả nhóm chốt policy + schema dữ liệu (mục 0
   5. `eval/README.md` mục 1–4.
   6. Gửi Khánh câu chuẩn đạt cuối để đưa vào `spec.md` §7.
 - **Checklist output:**
-  - [ ] `eval/benchmark.csv` ≥10 câu, không còn dòng mẫu, có `kho` và `tu_choi`
-  - [ ] `eval/metric_spec.yaml` 3 metric, không còn `<…>`
-  - [ ] `python run.py check` không báo lỗi phần benchmark + metric
+  - [x] `eval/benchmark.csv` ≥10 câu, không còn dòng mẫu, có `kho` và `tu_choi`
+  - [x] `eval/metric_spec.yaml` 3 metric, không còn `<…>`
+  - [x] `python run.py check` không báo lỗi phần benchmark + metric
   - [ ] Chấm thử 5 output khớp ≥4/5, ghi trong `eval/README.md`
   - [ ] `eval/README.md` mục 1–4
 
