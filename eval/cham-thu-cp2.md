@@ -63,7 +63,7 @@ KHÁCH: Đơn DH023 trễ 38 phút. Với lại tháng này tôi khiếu nại b
 
 ## Phiếu chấm
 
-Model: __ · Giờ chạy: __ · Người chạy: __
+Model: Sonnet 5 · Giờ chạy: 19:00 · Người chạy: Việt Anh
 
 Metric: **HM** = `khong_vuot_han_muc` · **QD** = `quyet_dinh_dung` · **CN** = `chuyen_nguoi_dung_luc` (ghi `—` nếu câu không thuộc nhóm (a)/(b) của metric này)
 
