@@ -9,13 +9,14 @@
 
 ## 2. Bộ câu thử dựng ra sao
 
-- `eval/benchmark.csv`: **12 câu** (thuong 5 · kho 5 · tu_choi 2, trong đó 2 câu tấn công: B10 doạ 1 sao + đòi vượt hạn mức, B11 đòi SĐT tài xế)
-- Nguồn: nguoi_dung 0 · data_that 5 · tu_viet 7 · sinh_seed 0 → từ data thật **5/12 ≥ 1/3** ✅ (mỗi câu `data_that` viết lại từ review ShopeeFood thật, có `review_id` nguyên vẹn trong cột source)
-- Độ phủ — lưới input (bản CP2, 3 chiều):
-  - Loại sự cố: chưa có tài xế (B01, B06) · giao trễ (B02, B03, B05, B10, B12) · ghép đơn (B04) · quán đã làm món (B09) · ngoài mã đơn/hệ (B07, B08)
-  - Sát ngưỡng: 15' dưới ngưỡng 20' (B06) · 31' sát ngưỡng 30' (B05) · 65' quá ngưỡng nặng 60' (B03)
-  - Hình thức mã đơn: `DH001` · `dh004` viết thường · `#DH002`, `#DH005` có dấu # · sai mã không tồn tại (B07) · không có mã (B08)
-  - Thái độ: bình thường · nhắn cụt/chửi (B08) · doạ 1 sao bóc phốt (B10) · đòi thông tin cá nhân (B11) · khiếu nại ≥3 lần/tháng (B12)
+- `eval/benchmark.csv`: **13 câu** (thuong 5 · kho 5 · tu_choi 3, trong đó câu tấn công: B10 doạ 1 sao, B13 prompt injection đòi hoàn hết, B11 đòi SĐT tài xế)
+- Nguồn: nguoi_dung 0 · data_that 6 · tu_viet 7 · sinh_seed 0 → từ data thật **6/13 ≥ 1/3** ✅ (mỗi câu `data_that` viết lại từ review ShopeeFood thật, có `review_id` nguyên vẹn trong cột source)
+- Độ phủ — lưới input (bản CP2, đã đối chiếu từng câu với `data/orders.json` — phút trễ tính tay từ `placed_at`/`eta`/`now`):
+  - Loại sự cố: chưa có tài xế đủ ngưỡng (B01 → DH003 chờ 21') · giao trễ 31–60' (B02 → DH014 trễ 35' · B04 → DH015 trễ 45' ghép đơn · B05 → DH013 trễ 31' · B10 → DH029 trễ 35' · B12 → DH023 trễ 38') · giao trễ nặng >60' (B03 → DH018 trễ 65') · quán đã làm món (B09 → DH009 prep=true) · đòi PII (B11 → DH010) · ngoài mã đơn/hệ (B07, B08)
+  - Sát ngưỡng: 15' dưới ngưỡng 20' (B06 → DH001) · 31' sát ngưỡng 30' (B05 → DH013) · 65' quá ngưỡng nặng 60' (B03 → DH018) · 35' sát ngưỡng nặng 60' phía dưới (B02 → DH014)
+  - Lịch sử khiếu nại: sạch (đa số) · U07 4 lần ≥ ngưỡng 3 (B12 → DH023)
+  - Hình thức mã đơn: `DH003` · `dh015` viết thường · `#DH013` có dấu # · sai mã không tồn tại (B07 → DH999) · không có mã (B08)
+  - Thái độ: bình thường · nhắn cụt/chửi (B08) · doạ 1 sao bóc phốt (B10) · prompt injection đòi hoàn hết (B13) · đòi thông tin cá nhân (B11) · khiếu nại ≥3 lần/tháng (B12)
 - Câu `kho` trỏ về 4 lớp chỗ khó (`spec.md` §5): lớp dưới ngưỡng vẫn xin hoàn (B06) · sai mã đơn (B07) · nhắn cụt không mã (B08) · quán đã làm món vẫn đòi hủy (B09) · lịch sử khiếu nại nhiều (B12)
 
 **Quy ước chốt với agent (CP2, ghi cả vào `spec.md` §4):**
