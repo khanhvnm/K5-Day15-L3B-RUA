@@ -81,14 +81,27 @@ class TestCP3P1Fixes(unittest.TestCase):
         self.assertNotIn("CS-999", out_non_esc)
         self.assertNotIn(", chờ phản hồi).", out_non_esc)
 
+        self._stub_model(_llm("TU_CHOI", 0, phan_loai="SECURITY_PII", request_type="NONE", tra_loi="(mã ca: CS-999)"))
+        out_empty_fallback = agent.answer("Cho tôi xin SĐT tài xế DH010")["output"]
+        self.assertNotIn("CS-999", out_empty_fallback)
+        self.assertNotIn(". .", out_empty_fallback)
+
     def test_hoan_tien_don_chua_tai_xe_vao_nhanh_huy_don(self):
-        self._stub_model(_llm("TU_CHOI", 0, request_type="KHIEU_NAI_TRE", tra_loi=""))
+        self._stub_model(
+            _llm(
+                "TU_CHOI",
+                0,
+                request_type="KHIEU_NAI_TRE",
+                tra_loi="Đơn chưa quá giờ dự kiến nên chưa thể tặng voucher.",
+            )
+        )
         out_b06 = agent.answer(
             "Đơn DH001 của tôi mới chờ 15 phút chưa có tài xế, quán cũng chưa làm. Hoàn tiền cho tôi bây giờ."
         )["output"]
         self.assertIn("QUYET_DINH=TU_CHOI | SO_TIEN=0 | MA_CA=-", out_b06.splitlines()[0])
         self.assertIn("15 phút", out_b06)
         self.assertIn("20 phút", out_b06)
+        self.assertNotIn("voucher", out_b06.lower())
 
         self._stub_model(_llm("HUY_HOAN", 95000, request_type="KHIEU_NAI_TRE"))
         out_dh004 = agent.answer(

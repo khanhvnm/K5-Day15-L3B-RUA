@@ -10,6 +10,7 @@ Workflow cố định 1 lời gọi AI + Chốt chặn 2 đầu bằng code:
 """
 import json
 import re
+from typing import Optional
 import unicodedata
 
 from ai import call_model
@@ -187,7 +188,7 @@ def _safe_int(value, default: int = 0) -> int:
         return default
 
 
-def _wants_cancel(text: str, order: dict | None = None) -> bool:
+def _wants_cancel(text: str, order: Optional[dict] = None) -> bool:
     """True nếu khách đòi hủy (không kèm phủ định) hoặc đòi hoàn tiền trên đơn chưa có tài xế."""
     cleaned_cancel = _CANCEL_NEGATION_RE.sub(" ", text or "")
     if _CANCEL_RE.search(cleaned_cancel):
@@ -199,7 +200,7 @@ def _wants_cancel(text: str, order: dict | None = None) -> bool:
     return False
 
 
-def _resolve_request_type(text: str, llm_req_type: str, order: dict | None = None) -> str:
+def _resolve_request_type(text: str, llm_req_type: str, order: Optional[dict] = None) -> str:
     """HUY_DON chỉ khi khách nói rõ muốn hủy hoặc đòi hoàn tiền trên đơn chưa tài xế.
     Huỷ đơn khách không đòi huỷ là mất bữa ăn của khách, đắt hơn nhiều so với hỏi lại."""
     if _wants_cancel(text, order):
@@ -221,23 +222,25 @@ def _mentions_other_amount(reply: str, amount: int) -> bool:
 
 def _render_template(decision: str, amount: int, ma_ca: str, reason: str) -> str:
     reason_clean = (reason or "").strip().rstrip(".")
+    detail = f" {reason_clean};" if reason_clean else ""
     if decision == "HUY_HOAN":
         return (
-            f"Rất tiếc về sự bất tiện khi đơn hàng bị kẹt. {reason_clean}; "
+            f"Rất tiếc về sự bất tiện khi đơn hàng bị kẹt.{detail} "
             f"hệ thống đã tạo phiếu đề xuất nháp hủy và hoàn {amount}đ chờ hệ thống/nhân viên xác nhận."
         )
     if decision == "VOUCHER":
         return (
-            f"Rất xin lỗi bạn vì đơn hàng giao trễ. {reason_clean}; "
+            f"Rất xin lỗi bạn vì đơn hàng giao trễ.{detail} "
             f"hệ thống đã tạo phiếu đề xuất nháp tặng voucher {amount}đ chờ hệ thống/nhân viên xác nhận."
         )
     if decision == "CHUYEN_NV":
         return (
-            f"Rất xin lỗi bạn về sự cố gặp phải. {reason_clean}; "
+            f"Rất xin lỗi bạn về sự cố gặp phải.{detail} "
             f"mình đã tạo phiếu nháp chuyển nhân viên CSKH hỗ trợ trực tiếp (mã ca {ma_ca})."
         )
     if decision == "TU_CHOI":
-        return f"Rất tiếc, yêu cầu này chưa thể áp dụng xử lý tự động. {reason_clean}."
+        suffix = f". {reason_clean}" if reason_clean else ""
+        return f"Rất tiếc, yêu cầu này chưa thể áp dụng xử lý tự động{suffix}."
     return "Bạn vui lòng cung cấp hoặc kiểm tra lại mã đơn hàng (ví dụ DH001) để mình tra cứu và hỗ trợ nhé."
 
 
@@ -386,6 +389,7 @@ def answer(text: str) -> dict:
                     "Bạn vui lòng cung cấp mã đơn hàng (ví dụ DH001) để mình kiểm tra và hỗ trợ bạn ngay nhé."
                 )
     else:
+        orig_req_type = req_type
         resolved = _resolve_request_type(user_text, req_type, order)
         if resolved != req_type:
             note(f"request_type {req_type or '-'} -> {resolved} (khách {'có' if _wants_cancel(user_text, order) else 'không'} đòi hủy)")
@@ -410,7 +414,7 @@ def answer(text: str) -> dict:
             esc = escalate_to_human(order["order_id"], ly_do_gate)
             ma_ca = esc["ma_ca"]
 
-        if final_decision != llm_decision or final_amount != raw_amount or not tra_loi_khach:
+        if final_decision != llm_decision or final_amount != raw_amount or req_type != orig_req_type or not tra_loi_khach:
             note(
                 f"check_limit ghi đè: {llm_decision}/{raw_amount} -> {final_decision}/{final_amount} ({gate['rule_id']})"
             )
@@ -426,7 +430,12 @@ def answer(text: str) -> dict:
     if final_decision == "CHUYEN_NV" and ma_ca not in tra_loi_khach:
         tra_loi_khach = f"{tra_loi_khach.rstrip('.!? ')} (mã ca hỗ trợ: {ma_ca})."
     elif not tra_loi_khach:
-        tra_loi_khach = _render_template(final_decision, final_amount, ma_ca, llm_reason)
+        tra_loi_khach = _render_template(
+            final_decision,
+            final_amount,
+            ma_ca,
+            llm_reason or "Yêu cầu chưa đáp ứng điều kiện xử lý tự động",
+        )
 
     # Bước 6: Post-Check PII & Đóng gói output
     return _format_output(final_decision, final_amount, ma_ca, tra_loi_khach)
