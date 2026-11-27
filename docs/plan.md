@@ -289,7 +289,7 @@ Thứ tự: 17:00–17:20 cả nhóm chốt policy + schema dữ liệu (mục 0
   - [x] Script lấy mẫu + 4 file part trong `evidence/labels/`
   - [x] `evidence/data-mining.md` có cách chọn mẫu + định nghĩa nhãn **trước khi** đếm
   - [x] `evidence/hypothesis.md` 2 dòng "Mình nghĩ… / Mình đúng nếu thấy…"
-  - [ ] Form khảo sát đã gửi, `evidence/survey/questions.md` có nguyên bộ câu hỏi + kênh gửi + giờ mở
+  - [x] Form khảo sát đã gửi, `evidence/survey/questions.md` có nguyên bộ câu hỏi + kênh gửi + giờ mở
 
 ### CP2-R · Review sản phẩm CP2 — **Khánh**
 - **Nhánh:** không tạo nhánh, review trên PR của từng người (checklist ở mục 2b).
@@ -297,7 +297,7 @@ Thứ tự: 17:00–17:20 cả nhóm chốt policy + schema dữ liệu (mục 0
 - **Thứ tự ưu tiên:** (1) `data/` của Duy Thành, vì code và câu thử phụ thuộc vào nó · (2) `benchmark.csv` + `metric_spec.yaml` của Việt Anh, vì phải khóa trước 19:30 · (3) khung code của Vũ Thành.
 - **Kiểm chéo hợp đồng:** `order_id` trong câu thử có trong `orders.json` · tên trường Vũ Thành đọc khớp với tên trường Duy Thành sinh · ngưỡng trong `check_limit` khớp `policy.json` và §4.
 - **Checklist output:**
-  - [ ] 3 PR (data, code khung, eval) đã có comment review và đã merge
+  - [x] 3 PR (data, code khung, eval) đã có comment review và đã merge *(data #1 → #2 · eval #3 → #4 · code #5 → #7)*
   - [x] Đã chấm thử 5 output với vai người thứ hai, kết quả ghi trong `eval/README.md`
   - [x] Đã tự tính tay `expected` cho 3 câu, khớp dữ liệu
   - [x] Bảng "Việc sửa sau review" đã cập nhật
@@ -503,9 +503,14 @@ Thứ tự: 17:00–17:20 cả nhóm chốt policy + schema dữ liệu (mục 0
 | 18:00 | PR #3 → #4 · `eval/` | 8/12 câu thử lệch mã đơn với data; B10 mâu thuẫn metric `tu_choi`; thiếu câu an toàn thực phẩm / trần 300k / biên 30' 60'; B02 trần 30k cho đơn 22k | Việt Anh + Khánh | CP2 | ☑ |
 | 18:45 | PR #5 → #7 · `codebase/agent.py`, `tools.py` | JSON hỏng vẫn chi voucher; tự hủy đơn khi khách chỉ than trễ; lấy số tiền của AI; NFD lọt chặn an toàn thực phẩm; dữ liệu dự phòng ngầm; mã ca trùng | Vũ Thành + Khánh | CP2 | ☑ |
 | 18:45 | PR #5 → #7 · `spec.md` §4 | Bảng công cụ + "phần nào còn giả" còn trống | Vũ Thành + Khánh | CP2 | ☑ |
-| 18:55 | CP2-5 · `evidence/survey/questions.md` | Chưa có file bộ câu hỏi khảo sát | Khánh | CP2 | ☑ (còn điền link · kênh · giờ mở) |
+| 18:55 | CP2-5 · `evidence/survey/questions.md` | Chưa có file bộ câu hỏi khảo sát | Khánh | CP2 | ☑ |
 | 18:55 | CP2-3 · `eval/README.md` mục 3 | Chấm thử 5 output với người thứ hai (phiếu `eval/cham-thu-cp2.md`), cần khớp ≥ 4/5 | Việt Anh + Khánh | 19:30 T6 | ☑ khớp 5/5 |
 | 18:55 | CP2-4 · form CP2 | Nộp form CP2 kèm chuẩn đạt §7 + tiến độ bằng chứng | Khánh | 19:30 T6 | ☐ |
 | 18:55 | lịch sử git · commit `b7cc79b` | File review thô vẫn còn trong lịch sử → nhóm quyết có viết lại lịch sử + force-push `main` không | Cả nhóm | ngoài giờ freeze | ☐ |
 | 18:55 | `spec.md` header, §3 | Phòng / Zone · Data BTC đã dùng · mỗi người thử 10' trợ lý ShopeeFood / GrabFood / be, gửi 1 dòng | Cả nhóm | CP3 10:00 T7 | ☐ |
-| 18:55 | `evidence/labels/` | Gắn nhãn tay 300 review (0/300) + 30 dòng chung kiểm độ khớp | Cả nhóm | CP3 10:00 T7 | ☐ |
+| 23:25 | `evidence/labels/part4.csv` | Mất 1 dòng (74/75) → `--verify` lệch seed, mẫu còn 299 → chèn lại, gắn `khac` | Việt Anh xác nhận | CP3 10:00 T7 | ☑ |
+| 23:25 | `evidence/labels/part2.csv`, `part4.csv` | 5 dòng đặt nhãn chính trái luật ưu tiên → đảo lại (danh sách ở `data-mining.md` mục 3) | Vũ Thành · Việt Anh xác nhận | CP3 10:00 T7 | ☑ |
+| 23:25 | `evidence/labels/overlap_30_thanh.csv` | Khớp `30/30`, trùng cả `ghi_chu` 26/30, commit sau `part1` → xác nhận gắn mù; `part1` do AI gợi ý nên độ khớp là người ↔ AI | Duy Thành | CP3 10:00 T7 | ☑ Duy Thành xác nhận gắn mù |
+| 23:25 | `evidence/survey/` | `questions.md` lệch form thật; form thu email; 1 email gửi 2 lần; chưa có `results.csv` → chép bộ câu thật, viết `anonymize_survey.py`, sinh `results.csv` (25 dòng) | Khánh | CP3 10:00 T7 | ☑ |
+| 23:25 | `evidence/survey/` | Không loại được người trong nhóm (câu "Bạn là" không có lựa chọn này) → 4 người tự xác nhận không điền form | Cả nhóm | CP3 10:00 T7 | ☑ cả 4 người xác nhận |
+| 18:55 | `evidence/labels/` | Gắn nhãn tay 300 review (0/300) + 30 dòng chung kiểm độ khớp | Cả nhóm | CP3 10:00 T7 | ☑ 300/300 + 30/30 |
