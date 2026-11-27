@@ -42,20 +42,24 @@ Lý do xếp thứ tự: nhãn cụ thể hơn đứng trước nhãn chung (`gi
 | Chỉ chửi chatbot/tổng đài, không nêu lỗi đơn | `cskh_khong_giai_quyet` |
 | Chửi chung chung, không rõ lỗi, hoặc nội dung vô nghĩa | `khac` |
 
-## 3. Kết quả *(sẽ điền sau khi cả nhóm gắn xong 300 dòng tại CP3-4)*
+## 3. Kết quả *(tổng hợp từ `part1..4.csv` bằng `count_labels.py`)*
 
-| Đếm gì | x / N | % | Tổng thumbs_up | Ghi chú |
-|---|---:|---:|---:|---|
-| `cho_tai_xe` | `/300` | | | Chờ tổng hợp CP3 |
-| `ghep_don` | `/300` | | | Chờ tổng hợp CP3 |
-| `giao_tre` | `/300` | | | Chờ tổng hợp CP3 |
-| `khong_huy_duoc` | `/300` | | | Chờ tổng hợp CP3 |
-| `cskh_khong_giai_quyet` | `/300` | | | Chờ tổng hợp CP3 |
-| `hoan_tien` | `/300` | | | Chờ tổng hợp CP3 |
-| `thieu_sai_mon` | `/300` | | | Chờ tổng hợp CP3 |
-| `khac` | `/300` | | | Chờ tổng hợp CP3 |
+- **Lệnh tái lập toàn bộ bảng số:** `python evidence/scripts/count_labels.py --check --markdown` (chi tiết code tại [count_labels.py](scripts/count_labels.py)).
+- **Kiểm tra mẫu `N = 300`:** `part1..4.csv` đủ `75 x 4 = 300` dòng duy nhất, không lỗi nhãn hay PII; `30` dòng trong `overlap_30_thanh.csv` chỉ dùng đo độ khớp chéo và **không** cộng vào `N = 300`.
 
-- Độ khớp gắn nhãn chéo (`30` dòng chung giữa Duy Thành và Khánh): `30/30` nhãn chính (`26/30` trùng cả `ghi_chu`) — đây là **Duy Thành ↔ nhãn AI gợi ý đã được Khánh duyệt**, không phải giữa 2 người gắn tay; xem lưu ý dưới.
+| Đếm gì | x / N | % | Nhắc ở nhãn phụ | Tổng lần nhắc | Tổng thumbs_up | Ghi chú |
+|---|---:|---:|---:|---:|---:|---|
+| `cho_tai_xe` | `23/300` | `7.7%` | 22 | 45 (`15.0%`) | 49 | Nhóm giả thuyết D1 |
+| `ghep_don` | `42/300` | `14.0%` | 3 | 45 (`15.0%`) | 171 | Nhóm giả thuyết D1 |
+| `giao_tre` | `30/300` | `10.0%` | 56 | 86 (`28.7%`) | 107 | Nhóm giả thuyết D1 |
+| `khong_huy_duoc` | `48/300` | `16.0%` | 1 | 49 (`16.3%`) | 79 | Nhóm giả thuyết D1 |
+| `cskh_khong_giai_quyet` | `7/300` | `2.3%` | 20 | 27 (`9.0%`) | 20 |  |
+| `hoan_tien` | `34/300` | `11.3%` | 1 | 35 (`11.7%`) | 125 |  |
+| `thieu_sai_mon` | `9/300` | `3.0%` | 0 | 9 (`3.0%`) | 26 | Ngoài phạm vi tự động D1 |
+| `khac` | `107/300` | `35.7%` | 22 | 129 (`43.0%`) | 453 |  |
+
+- **Nhóm giả thuyết D1 (`cho_tai_xe + ghep_don + giao_tre + khong_huy_duoc`):** **`143/300` (`47.7%`)** — vượt ngưỡng `>= 40%` trong `evidence/hypothesis.md`.
+- **Độ khớp gắn nhãn chéo (`30` dòng chung giữa Duy Thành và Khánh):** `30/30` nhãn chính (`26/30` trùng cả `ghi_chu`) — đây là **Duy Thành ↔ nhãn AI gợi ý đã được Khánh duyệt**, không phải giữa 2 người gắn tay; xem lưu ý dưới.
 
 **Tiến độ gắn nhãn (23:25 27/11):** đủ `300/300` dòng + `30/30` dòng chung, `python evidence/scripts/sample_reviews.py --verify` khớp `seed=42` cả 5 file.
 
@@ -67,13 +71,30 @@ Lý do xếp thứ tự: nhãn cụ thể hơn đứng trước nhãn chung (`gi
 - `part4.csv` thiếu 1 dòng (`review_id 15b1f12c-…`, GreenSM, so giá với Grab) làm `--verify` báo lệch seed → chèn lại đúng vị trí 40, gắn `khac` *(Claude Code gắn, Việt Anh đã xác nhận)*.
 - 5 dòng đặt nhãn chính trái luật ưu tiên mục 2 → đảo lại theo luật, không đổi tập nhãn của dòng (Vũ Thành, Việt Anh đã xác nhận): `part2` #56 (`cho_tai_xe` → `khong_huy_duoc`) · `part4` #6 (`cskh_khong_giai_quyet` → `hoan_tien`) · #31 (`khong_huy_duoc` → `hoan_tien`) · #72 (`giao_tre` → `khong_huy_duoc`) · #43 chỉ sắp lại thứ tự `ghi_chu`.
 
-## 4. ≥5 ví dụ cụ thể *(chốt trích dẫn kiểm chứng ở CP3-4)*
+### Phân bổ theo từng ứng dụng (`N = 300`)
 
-*(Đang chờ hoàn tất bước gắn nhãn nhóm từ `part1..4.csv`.)*
+| Ứng dụng | Số dòng | Nhóm D1 (`x/app`, `%`) | Tổng thumbs_up | Top lỗi chính |
+|---|---:|---:|---:|---|
+| ShopeeFood | 193 | `90/193` (`46.6%`) | 799 | `khac` (67), `ghep_don` (32), `hoan_tien` (26) |
+| Grab | 53 | `33/53` (`62.3%`) | 106 | `khac` (13), `khong_huy_duoc` (12), `ghep_don` (9) |
+| GreenSM | 35 | `16/35` (`45.7%`) | 96 | `khac` (18), `khong_huy_duoc` (14), `cho_tai_xe` (2) |
+| be | 19 | `4/19` (`21.1%`) | 29 | `khac` (9), `hoan_tien` (4), `khong_huy_duoc` (2) |
+
+## 4. ≥5 ví dụ cụ thể *(nguyên văn từ mẫu đã gắn nhãn, không PII)*
+
+1. **`khong_huy_duoc`** — *"Đặt đồ ăn quán gần nhà bắt đợi cả tiếng chưa thấy báo nhận đơn. Hủy thì ko được."* (`app=ShopeeFood`, `date=2026-06-24`, `review_id=7de0494b-d6af-450b-9adf-65d5200bf448`, `thumbs_up=11`, `ghi_chu=cho_tai_xe`)
+2. **`khong_huy_duoc`** — *"thời gian giao quá lâu. k tìm được tài xế 2 tiếng sau mới cho hủy."* (`app=ShopeeFood`, `date=2026-06-21`, `review_id=bdd92b1a-597f-4b8f-80b2-bda6e79c5a4b`, `thumbs_up=10`, `ghi_chu=cho_tai_xe`)
+3. **`ghep_don`** — *"Giờ chế độ ghép đơn khiến thời gian giao hàng rất chậm. Gọi bữa trưa mà gần 2 tiếng đồ ăn mới đến nơi."* (`app=ShopeeFood`, `date=2026-10-21`, `review_id=2abeceb3-5d48-4690-b34d-e26d94c53bcb`, `thumbs_up=24`, `ghi_chu=giao_tre`)
+4. **`cho_tai_xe`** — *"kì vl,đặt hàng từ chiều tối,xong cái app bảo ko tìm thấy tài xế, đã đói còn phải đợi, bực vl"* (`app=Grab`, `date=2026-04-30`, `review_id=7ce7616d-a90f-4282-bb71-07f3b2277b63`, `thumbs_up=6`)
+5. **`giao_tre`** — *"Làm ăn chậm chạp đơn có 2km ship gần 2 tiếng,t ghi thêm.bây giờ hơn 2 tiếng r vẫn chưa thấy đâu"* (`app=ShopeeFood`, `date=2026-10-03`, `review_id=8ac0d1cf-404c-4fd5-8034-0d4794107b74`, `thumbs_up=21`)
+6. **`hoan_tien`** — *"chán lắm mua deal trừ tiền không được hoàn trả r mà lại còn không có shiper giao. đặt đi đặt lại không được giao hàng."* (`app=ShopeeFood`, `date=2026-01-10`, `review_id=1a717622-3aef-427a-8464-f608e35effcd`, `thumbs_up=30`, `ghi_chu=cho_tai_xe`)
+7. **`cskh_khong_giai_quyet`** — *"chăm sóc khách hàng bằng cách dùng AI phản hồi chung chung, thậm chí tài xế lấy đơn cũng không khiếu nại được"* (`app=ShopeeFood`, `date=2026-09-22`, `review_id=2343c034-a0d2-4b26-a8cd-40067cbb6950`, `thumbs_up=7`)
+8. **`thieu_sai_mon`** *(ngoài phạm vi tự động D1)* — *"Quá chán, càng ngày càng tệ, giao thì toàn ghép rất lâu, còn giao thiếu đồ"* (`app=ShopeeFood`, `date=2026-06-25`, `review_id=6c06b455-a425-462e-86b8-160c977c5334`, `thumbs_up=19`, `ghi_chu=ghep_don`)
 
 ## 5. Giới hạn của data
 
 - Nguồn review trên kho ứng dụng ở đây chỉ gồm **`1–2★`** nên thiên lệch mạnh về người dùng đang gặp bức xúc nặng; tỷ lệ % thu được **không** đại diện cho tỷ lệ lỗi trên tổng đơn hàng ngoài đời.
-- Mẫu nghiêng về ShopeeFood (`193/300`) theo đúng tỷ lệ trong file gốc (`1.465/2.331`). Script không chia tầng theo app nên % gộp phản ánh chủ yếu ShopeeFood.
+- Mẫu nghiêng về ShopeeFood (`193/300`) theo đúng tỷ lệ trong file gốc (`1.465/2.331`). Script không chia tầng theo app nên % gộp phản ánh chủ yếu ShopeeFood, trong khi từng app khác có cấu trúc lỗi riêng (Grab `62.3%` D1; GreenSM `40.0%` là `khong_huy_duoc` `14/35`).
+- `part1.csv` (`75` dòng) do AI gợi ý và Khánh duyệt lại nên phép đo chéo `30/30` phản ánh sự thống nhất **Duy Thành ↔ AI gợi ý đã duyệt**, chưa phải 2 người gắn tay độc lập hoàn toàn.
 - `trich_dan` chỉ giữ tối đa 2 câu và 280 ký tự. `9/300` dòng bị cắt ở đúng 280 ký tự và có thể đứt giữa câu; khi cần ngữ cảnh thì tra lại theo `review_id` trong file gốc.
-- Data cho biết khách hàng **gặp chuyện gì**, chưa giải thích đầy đủ hành vi xoay xở và mức sẵn sàng chi trả → kiểm chéo lại qua **khảo sát `>= 20` người** và **`>= 3` phỏng vấn** người dùng thật tại `evidence/interviews/` & `evidence/survey/`.
+- Data cho biết khách hàng **gặp chuyện gì**, chưa giải thích đầy đủ tần suất gặp hàng tháng ở người dùng phổ thông → đã kiểm chéo qua **khảo sát `25` người (`n = 23` người đặt đồ ăn)** tại [results.csv](survey/results.csv); phần phỏng vấn sâu (`evidence/interviews/`) hiện vẫn chưa thực hiện (`0/3`).
