@@ -272,10 +272,10 @@ Thứ tự: 17:00–17:20 cả nhóm chốt policy + schema dữ liệu (mục 0
   5. canvas.md dòng "Đã đổi gì so với CP1" (1–3 dòng) + dòng 4 cập nhật số đầu tiên + 1 trích dẫn (lấy từ CP2-5).
   6. 19:15 freeze → `python run.py check` → nộp CP2.
 - **Checklist output:**
-  - [ ] `spec.md` §4 có sơ đồ + bảng công cụ + mức tự động + ≥3 nguyên tắc (có G10)
-  - [ ] `spec.md` §5 ≥6 kịch bản + 2 tấn công
-  - [ ] `spec.md` §7 có chuẩn "đạt" bằng số, commit trước 19:30
-  - [ ] canvas cập nhật + dòng "đã đổi gì"
+  - [x] `spec.md` §4 có sơ đồ + bảng công cụ + mức tự động + ≥3 nguyên tắc (có G10)
+  - [x] `spec.md` §5 ≥6 kịch bản + 2 tấn công
+  - [x] `spec.md` §7 có chuẩn "đạt" bằng số, commit trước 19:30
+  - [x] canvas cập nhật + dòng "đã đổi gì"
   - [ ] Đã nộp form CP2 (kèm chuẩn đạt chép từ §7, nguồn bằng chứng đang làm đến đâu)
 
 ### CP2-5 · Bắt đầu bằng chứng: lấy mẫu review + khảo sát — **Duy Thành** (chủ) + cả nhóm
