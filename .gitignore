@@ -37,3 +37,6 @@ data-btc
 data-btc/
 
 docs/no_commit/
+
+# File review thô đặt nhầm ngoài docs/no_commit/
+docs/*.csv
