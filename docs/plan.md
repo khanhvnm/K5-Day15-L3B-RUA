@@ -250,8 +250,8 @@ Thứ tự: 17:00–17:20 cả nhóm chốt policy + schema dữ liệu (mục 0
   - [x] `eval/benchmark.csv` ≥10 câu, không còn dòng mẫu, có `kho` và `tu_choi`
   - [x] `eval/metric_spec.yaml` 3 metric, không còn `<…>`
   - [x] `python run.py check` không báo lỗi phần benchmark + metric
-  - [ ] Chấm thử 5 output khớp ≥4/5, ghi trong `eval/README.md`
-  - [ ] `eval/README.md` mục 1–4
+  - [x] Chấm thử 5 output khớp ≥4/5, ghi trong `eval/README.md`
+  - [x] `eval/README.md` mục 1–4
 
 ### CP2-4 · Spec thiết kế + khóa chuẩn đạt — **Khánh**
 - **Nhánh:** `docs/cp2-spec-design`
@@ -298,7 +298,7 @@ Thứ tự: 17:00–17:20 cả nhóm chốt policy + schema dữ liệu (mục 0
 - **Kiểm chéo hợp đồng:** `order_id` trong câu thử có trong `orders.json` · tên trường Vũ Thành đọc khớp với tên trường Duy Thành sinh · ngưỡng trong `check_limit` khớp `policy.json` và §4.
 - **Checklist output:**
   - [ ] 3 PR (data, code khung, eval) đã có comment review và đã merge
-  - [ ] Đã chấm thử 5 output với vai người thứ hai, kết quả ghi trong `eval/README.md`
+  - [x] Đã chấm thử 5 output với vai người thứ hai, kết quả ghi trong `eval/README.md`
   - [x] Đã tự tính tay `expected` cho 3 câu, khớp dữ liệu
   - [x] Bảng "Việc sửa sau review" đã cập nhật
 
@@ -504,7 +504,7 @@ Thứ tự: 17:00–17:20 cả nhóm chốt policy + schema dữ liệu (mục 0
 | 18:45 | PR #5 → #7 · `codebase/agent.py`, `tools.py` | JSON hỏng vẫn chi voucher; tự hủy đơn khi khách chỉ than trễ; lấy số tiền của AI; NFD lọt chặn an toàn thực phẩm; dữ liệu dự phòng ngầm; mã ca trùng | Vũ Thành + Khánh | CP2 | ☑ |
 | 18:45 | PR #5 → #7 · `spec.md` §4 | Bảng công cụ + "phần nào còn giả" còn trống | Vũ Thành + Khánh | CP2 | ☑ |
 | 18:55 | CP2-5 · `evidence/survey/questions.md` | Chưa có file bộ câu hỏi khảo sát | Khánh | CP2 | ☑ (còn điền link · kênh · giờ mở) |
-| 18:55 | CP2-3 · `eval/README.md` mục 3 | Chấm thử 5 output với người thứ hai (phiếu `eval/cham-thu-cp2.md`), cần khớp ≥ 4/5 | Việt Anh + Khánh | 19:30 T6 | ☐ |
+| 18:55 | CP2-3 · `eval/README.md` mục 3 | Chấm thử 5 output với người thứ hai (phiếu `eval/cham-thu-cp2.md`), cần khớp ≥ 4/5 | Việt Anh + Khánh | 19:30 T6 | ☑ khớp 5/5 |
 | 18:55 | CP2-4 · form CP2 | Nộp form CP2 kèm chuẩn đạt §7 + tiến độ bằng chứng | Khánh | 19:30 T6 | ☐ |
 | 18:55 | lịch sử git · commit `b7cc79b` | File review thô vẫn còn trong lịch sử → nhóm quyết có viết lại lịch sử + force-push `main` không | Cả nhóm | ngoài giờ freeze | ☐ |
 | 18:55 | `spec.md` header, §3 | Phòng / Zone · Data BTC đã dùng · mỗi người thử 10' trợ lý ShopeeFood / GrabFood / be, gửi 1 dòng | Cả nhóm | CP3 10:00 T7 | ☐ |

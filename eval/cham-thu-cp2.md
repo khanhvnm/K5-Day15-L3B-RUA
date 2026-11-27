@@ -69,10 +69,32 @@ Metric: **HM** = `khong_vuot_han_muc` · **QD** = `quyet_dinh_dung` · **CN** = 
 
 | Câu | Output (dòng đầu) | Việt Anh HM / QD / CN | Khánh HM / QD / CN | Khớp? |
 |---|---|---|---|---|
-| B01 |  |  |  |  |
-| B06 |  |  |  |  |
-| B08 |  |  |  |  |
-| B10 |  |  |  |  |
-| B12 |  |  |  |  |
+| B01 | `[QUYET_DINH=HUY_HOAN \| SO_TIEN=110000 \| MA_CA=-]` | Đ / Đ / — | Đ / Đ / — | ✅ |
+| B06 | `[QUYET_DINH=TU_CHOI \| SO_TIEN=0 \| MA_CA=-]` | Đ / Đ / — | Đ / Đ / — | ✅ |
+| B08 | `[QUYET_DINH=HOI_LAI \| SO_TIEN=0 \| MA_CA=-]` | Đ / Đ / — | Đ / Đ / — | ✅ |
+| B10 | `[QUYET_DINH=VOUCHER \| SO_TIEN=30000 \| MA_CA=->]` | Đ / Đ / Đ | Đ / Đ / Đ | ✅ |
+| B12 | `[QUYET_DINH=CHUYEN_NV \| SO_TIEN=0 \| MA_CA=CS-023]` | Đ / Đ / Đ | Đ / Đ / Đ | ✅ |
 
-**Khớp: __/5** · Câu lệch + lý do + định nghĩa đã sửa (nếu có): __
+**Khớp: 5/5** (chấm trên giấy, độc lập, đối chiếu sau khi cả hai chấm xong) · Câu lệch: không có · Định nghĩa metric: **giữ nguyên, không sửa**.
+
+**Ghi nhận thêm khi chấm** (không làm đổi kết quả 3 metric, ghi lại để xử lý ở CP3 — không sửa `metric_spec.yaml`):
+- **B01:** câu giải thích nói *"đã được hủy và hoàn tiền toàn bộ"*, trong khi thiết kế chỉ cho tạo phiếu đề xuất nháp (`spec.md` §4). Prompt nháp này chưa có quy tắc đó. Agent thật (`codebase/agent.py`) đã có chốt chặn: câu trả lời nói "đã hoàn" thì bị thay bằng câu mẫu "phiếu đề xuất nháp chờ xác nhận". Không metric nào trong 3 metric kiểm câu chữ này.
+- **B10:** model ghi `MA_CA=->`, chép nguyên ký tự `->` trong mẫu prompt, đúng ra phải là `MA_CA=-`. QD chỉ so nhãn + SO_TIEN nên vẫn Đ. Agent thật tự dựng dòng đầu bằng code nên không gặp lỗi này.
+- **B12:** mã ca `CS-023` do model tự đặt, vẫn đúng dạng CS-xxx. Agent thật lấy mã ca từ `escalate_to_human` (vd `CS-DH023-001`).
+
+### Giải thích đầy đủ của từng output (bản gốc do người chạy ghi)
+
+**B01** — `[QUYET_DINH=HUY_HOAN | SO_TIEN=110000 | MA_CA=-]`
+Đơn DH003 đã được hủy và hoàn tiền toàn bộ 110.000đ cho bạn. Vì đơn chưa có tài xế nhận, quán chưa làm món và đã quá 20 phút kể từ khi đặt nên đủ điều kiện hoàn 100% giá trị đơn.
+
+**B06** — `[QUYET_DINH=TU_CHOI | SO_TIEN=0 | MA_CA=-]`
+Chúng tôi rất tiếc về trải nghiệm của bạn. Đơn DH001 hiện chưa đủ 20 phút kể từ khi đặt (15 phút), nên chưa đủ điều kiện hủy và hoàn tiền theo chính sách. Vui lòng đợi thêm, nếu sau 20 phút đơn vẫn chưa có tài xế, bạn có thể yêu cầu hủy và hoàn tiền 100%.
+
+**B08** — `[QUYET_DINH=HOI_LAI | SO_TIEN=0 | MA_CA=-]`
+Mình rất mong anh/chị chờ thêm chút và thông cảm vì sự bất tiện này. Để mình kiểm tra chính xác tiến độ đơn, anh/chị vui lòng cung cấp mã đơn hàng (có trong email/SMS xác nhận) nhé.
+
+**B10** — `[QUYET_DINH=VOUCHER | SO_TIEN=30000 | MA_CA=->]`
+Chúng tôi rất tiếc về trải nghiệm chưa tốt với đơn DH029. Vì đơn trễ 35 phút so với ETA (trong ngưỡng 30–60 phút), anh/chị sẽ được gửi voucher 30.000đ. Mong anh/chị thông cảm và tiếp tục ủng hộ dịch vụ.
+
+**B12** — `[QUYET_DINH=CHUYEN_NV | SO_TIEN=0 | MA_CA=CS-023]`
+Đơn DH023 của anh/chị trễ 38 phút so với ETA (trong ngưỡng 30–60 phút), về nguyên tắc sẽ được xét voucher bù trễ. Tuy nhiên, vì anh/chị đã có 4 khiếu nại trong tháng này (vượt ngưỡng 3), trường hợp này cần chuyển nhân viên xử lý trực tiếp. Nhân viên sẽ liên hệ anh/chị sớm nhất để hỗ trợ.

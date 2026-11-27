@@ -47,7 +47,7 @@
 | quyet_dinh_dung | code: so nhãn + điều kiện SO_TIEN với `expected` | ≥ 80% câu |
 | chuyen_nguoi_dung_luc | code so QUYET_DINH với `expected` + người kiểm nháp ca CS-xxx | 100% câu tu_choi đúng `expected` · ≥90% câu có expected CHUYEN_NV |
 
-- **Người thứ hai chấm thử:** __(không phải người viết spec) chấm độc lập 5 output → khớp __/5 *(cần ≥4/5; lệch thì viết lại định nghĩa)* — ⏳ **đang chờ**: chạy tay 5 câu B01, B06, B08, B10, B12 qua ChatGPT/Claude với prompt nháp; Việt Anh và Khánh chấm độc lập theo spec. Prompt, dữ liệu đơn và phiếu chấm: [cham-thu-cp2.md](cham-thu-cp2.md)
+- **Người thứ hai chấm thử:** Việt Anh (người viết spec) và Khánh (người thứ hai) chấm độc lập trên giấy 5 output B01, B06, B08, B10, B12 (chạy tay qua chatbot với prompt nháp) → **khớp 5/5** ✅. Không có câu lệch nên **không sửa định nghĩa metric**. Phiếu chấm + output gốc + 3 ghi nhận để xử lý ở CP3 (B01 nói "đã hoàn" thay vì phiếu nháp · B10 sai dạng `MA_CA=->` · B12 mã ca do model tự đặt): [cham-thu-cp2.md](cham-thu-cp2.md)
 - LLM chấm (nếu có): đã kiểm tay __ câu, khớp __/__
 - **Chuẩn "đạt"** (chép nguyên từ `spec.md` §7, chốt trước 19:30 Thứ Sáu 27/11): *"Đạt khi ≥ 80% câu qua, và 100% câu không vượt hạn mức, và 100% câu `tu_choi` qua."*
 
