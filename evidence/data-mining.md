@@ -4,10 +4,11 @@
 
 ## 1. Cách đếm — viết TRƯỚC khi chạy
 
-- **Data dùng:** Tập review công khai 4 app giao đồ ăn (`ShopeeFood: 1.465`, `Grab: 452`, `GreenSM: 245`, `be: 169` — tổng `2.331` dòng mức `1–2★`, năm 2026), file thô để tại `docs/no_commit/reviews_food_2026.csv` *(không commit lên GitHub)*.
+- **Data dùng:** Tập review công khai 4 app giao đồ ăn (`ShopeeFood: 1.465`, `Grab: 452`, `GreenSM: 245`, `be: 169` — tổng `2.331` dòng mức `1–2★`, ngày review từ `01/01/2026` đến `26/11/2026`), file thô để tại `docs/no_commit/reviews_food_2026.csv` *(không commit lên GitHub)*.
+- **Không lọc theo cột `is_food` của file gốc:** ShopeeFood là app chỉ giao đồ ăn, nhưng `951/1.465` review ShopeeFood bị gắn `is_food=False`, kể cả review rõ ràng về giao đồ ăn (vd *"ghép đơn giao lâu vl"*). Vì vậy cờ này không đáng tin. Với Grab, GreenSM và be, file gốc chỉ giữ dòng `is_food=True`, nên mẫu không lẫn review gọi xe.
 - **Đếm gì · trên tập nào · lọc gì:** Lấy ngẫu nhiên **300 review** bằng `seed = 42` trên **toàn bộ 4 app** (`1–2★`, độ dài `>= 8` ký tự; cơ cấu mẫu thu được: `ShopeeFood: 193`, `Grab: 53`, `GreenSM: 35`, `be: 19` — khớp phần *"Nguồn sẽ kiểm"* trong `canvas.md` và CP2-5 trong `docs/plan.md`, phân biệt với ước lượng thô CP1 trên `1.465` review ShopeeFood), gắn **1 nhãn chính (`nhan`)** mô tả nguyên nhân bức xúc cốt lõi nhất (hoặc ghi nhãn phụ vào `ghi_chu`), sau đó tính `x / 300 (%)` và tổng `thumbs_up` theo từng nhãn. Chia 4 phần bằng nhau cho 4 thành viên (`part1..4.csv`, mỗi người `75` dòng) + `overlap_30_thanh.csv` (`30` dòng từ `part1` để Duy Thành và Khánh gắn chéo kiểm độ khớp).
 - **Mẫu số là gì:** **`N = 300`** review trong mẫu ngẫu nhiên đã trích (bao gồm cả review không liên quan đơn kẹt/trễ như `thieu_sai_mon` hoặc `khac` để không làm méo mẫu số).
-- **Script / công thức:** [sample_reviews.py](file:///D:/Hackathon/K5-Day15-L3B-RUA/evidence/scripts/sample_reviews.py) (`seed = 42`). Script gộp & đếm `x/300` sẽ hoàn thiện tại nhánh CP3-4 sau khi đủ 4 file part.
+- **Script / công thức:** [sample_reviews.py](scripts/sample_reviews.py) (`seed = 42`). Kiểm tái lập: `python evidence/scripts/sample_reviews.py --verify`. Script không ghi đè file part đã có nhãn. Script gộp & đếm `x/300` sẽ hoàn thiện tại nhánh CP3-4 sau khi đủ 4 file part.
 
 ## 2. Đọc trước, đếm sau — Định nghĩa bộ nhãn
 
@@ -23,6 +24,23 @@ Sau khi rà các dòng đầu và phân tích sơ bộ bài toán D1, định ng
 | `hoan_tien` | Trừ tiền không có đơn, hủy đơn nhưng không hoàn tiền / treo hoàn tiền / ép đổi sang voucher |
 | `thieu_sai_mon` | Quán giao thiếu món, sai món, đồ hỏng/ôi thiu *(ngoài phạm vi tự động D1 — phải chuyển người)* |
 | `khac` | Lỗi app/định vị/thanh toán, phí ship/deal, thái độ tài xế, hoặc nhận xét chung không rõ lỗi |
+
+**Luật chọn nhãn chính khi một review khớp nhiều nhãn** *(chốt trước khi gắn, không đổi sau khi đếm)*: lấy nhãn **đứng trước** theo thứ tự dưới đây làm `nhan`, các nhãn còn lại ghi vào `ghi_chu`, cách nhau bằng dấu `;`.
+
+`thieu_sai_mon` › `hoan_tien` › `khong_huy_duoc` › `cho_tai_xe` › `ghep_don` › `giao_tre` › `cskh_khong_giai_quyet` › `khac`
+
+Lý do xếp thứ tự: nhãn cụ thể hơn đứng trước nhãn chung (`giao_tre`, `khac`). `cskh_khong_giai_quyet` thường là hệ quả của một lỗi khác nên chỉ làm nhãn chính khi review không nêu lỗi gốc nào.
+
+**Ca mập mờ đã gặp khi đọc trước mẫu:**
+
+| Review nói | Gắn `nhan` |
+|---|---|
+| Đợi lâu, không có tài xế, không hủy được (*"đợi lâu, thường kco tài xế và k thể hủy đơn"*) | `khong_huy_duoc` · `ghi_chu`: `cho_tai_xe;giao_tre` |
+| Tài xế nhận đơn rồi bỏ / không giao, phải chờ tài xế khác | `cho_tai_xe` |
+| Bị trừ tiền mà chưa đặt được đơn, hoặc hủy rồi chưa được hoàn | `hoan_tien` |
+| Chỉ than "chậm quá / lâu quá", không nói vì sao | `giao_tre` |
+| Chỉ chửi chatbot/tổng đài, không nêu lỗi đơn | `cskh_khong_giai_quyet` |
+| Chửi chung chung, không rõ lỗi, hoặc nội dung vô nghĩa | `khac` |
 
 ## 3. Kết quả *(sẽ điền sau khi cả nhóm gắn xong 300 dòng tại CP3-4)*
 
@@ -46,4 +64,6 @@ Sau khi rà các dòng đầu và phân tích sơ bộ bài toán D1, định ng
 ## 5. Giới hạn của data
 
 - Nguồn review trên kho ứng dụng ở đây chỉ gồm **`1–2★`** nên thiên lệch mạnh về người dùng đang gặp bức xúc nặng; tỷ lệ % thu được **không** đại diện cho tỷ lệ lỗi trên tổng đơn hàng ngoài đời.
+- Mẫu nghiêng về ShopeeFood (`193/300`) theo đúng tỷ lệ trong file gốc (`1.465/2.331`). Script không chia tầng theo app nên % gộp phản ánh chủ yếu ShopeeFood.
+- `trich_dan` chỉ giữ tối đa 2 câu và 280 ký tự. `9/300` dòng bị cắt ở đúng 280 ký tự và có thể đứt giữa câu; khi cần ngữ cảnh thì tra lại theo `review_id` trong file gốc.
 - Data cho biết khách hàng **gặp chuyện gì**, chưa giải thích đầy đủ hành vi xoay xở và mức sẵn sàng chi trả → kiểm chéo lại qua **khảo sát `>= 20` người** và **`>= 3` phỏng vấn** người dùng thật tại `evidence/interviews/` & `evidence/survey/`.
