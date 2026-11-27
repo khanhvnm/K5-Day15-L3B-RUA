@@ -46,22 +46,40 @@ class TestCP3P1Fixes(unittest.TestCase):
         }
 
     def test_khong_lo_ma_ca_bia_tu_model(self):
+        for raw_reply in (
+            "Chúng tôi đã chuyển ca CS-023 cho nhân viên hỗ trợ.",
+            "Đã chuyển nhân viên (mã ca: CS-023, chờ phản hồi).",
+            "Mình đã chuyển nhân viên với mã ca hỗ trợ: CS-023.",
+        ):
+            self._stub_model(
+                _llm(
+                    "CHUYEN_NV",
+                    0,
+                    request_type="KHIEU_NAI_TRE",
+                    tra_loi=raw_reply,
+                )
+            )
+            out = agent.answer("Đơn DH023 trễ 38 phút rồi")["output"]
+            first = out.splitlines()[0]
+            self.assertNotIn("CS-023", out)
+            m = re.search(r"MA_CA=(CS-DH023-\d+)", first)
+            self.assertIsNotNone(m, first)
+            ma_ca = m.group(1)
+            self.assertEqual(len(re.findall(r"CS-[A-Za-z0-9-]+", out)), 2)
+            self.assertIn(ma_ca, out.splitlines()[1])
+            self.assertNotIn("với.", out)
+
         self._stub_model(
             _llm(
-                "CHUYEN_NV",
-                0,
+                "VOUCHER",
+                30000,
                 request_type="KHIEU_NAI_TRE",
-                tra_loi="Chúng tôi đã chuyển ca CS-023 cho nhân viên hỗ trợ.",
+                tra_loi="Đã tạo phiếu đề xuất nháp voucher 30000đ (mã ca: CS-999, chờ phản hồi).",
             )
         )
-        out = agent.answer("Đơn DH023 trễ 38 phút rồi")["output"]
-        first = out.splitlines()[0]
-        self.assertNotIn("CS-023", out)
-        m = re.search(r"MA_CA=(CS-DH023-\d+)", first)
-        self.assertIsNotNone(m, first)
-        ma_ca = m.group(1)
-        self.assertEqual(len(re.findall(r"CS-[A-Za-z0-9-]+", out)), 2)
-        self.assertIn(ma_ca, out.splitlines()[1])
+        out_non_esc = agent.answer("Đơn DH013 trễ 31 phút")["output"]
+        self.assertNotIn("CS-999", out_non_esc)
+        self.assertNotIn(", chờ phản hồi).", out_non_esc)
 
     def test_hoan_tien_don_chua_tai_xe_vao_nhanh_huy_don(self):
         self._stub_model(_llm("TU_CHOI", 0, request_type="KHIEU_NAI_TRE", tra_loi=""))
@@ -79,11 +97,13 @@ class TestCP3P1Fixes(unittest.TestCase):
         self.assertIn("QUYET_DINH=HUY_HOAN | SO_TIEN=95000 | MA_CA=-", out_dh004.splitlines()[0])
 
     def test_phu_dinh_huy_khong_ep_sang_huy_don(self):
-        self._stub_model(_llm("VOUCHER", 30000, request_type="HUY_DON"))
-        out = agent.answer(
-            "Đơn DH013 đừng hủy đơn nhé, giao trễ 31 phút cho mình xin voucher."
-        )["output"]
-        self.assertIn("QUYET_DINH=VOUCHER | SO_TIEN=30000 | MA_CA=-", out.splitlines()[0])
+        for msg in (
+            "Đơn DH013 đừng hủy đơn nhé, giao trễ 31 phút cho mình xin voucher.",
+            "Đơn DH013 đừng có hủy nha, trễ 31 phút cho xin voucher.",
+        ):
+            self._stub_model(_llm("VOUCHER", 30000, request_type="HUY_DON"))
+            out = agent.answer(msg)["output"]
+            self.assertIn("QUYET_DINH=VOUCHER | SO_TIEN=30000 | MA_CA=-", out.splitlines()[0], msg)
 
         self._stub_model(_llm("HUY_HOAN", 110000, request_type="KHIEU_NAI_TRE"))
         out_cant_cancel = agent.answer(

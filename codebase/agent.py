@@ -38,13 +38,15 @@ _MONEY_RE = re.compile(r"(\d[\d.,]*)\s*(k|nghìn|ngàn|đ|đồng|vnd)(?![a-zà-
 _PROMPT_TAG_RE = re.compile(r"<\s*/?\s*(?:du_lieu_he_thong|tin_nhan_khach_hang)\s*>", re.IGNORECASE)
 # Khách nói rõ muốn huỷ đơn — chỉ khi đó mới được vào nhánh HUY_DON
 _CANCEL_NEGATION_RE = re.compile(
-    r"(?:đừng|khỏi)\s+(?:hủy|huỷ|cancel)|(?:không|ko|k|chưa)\s+(?:muốn|cần)\s+(?:hủy|huỷ|cancel)|(?:không|ko|k)\s+(?:hủy|huỷ)(?!\s*(?:đơn\s+)?(?:được|đc|dc|nổi)\b)",
+    r"(?:đừng|khỏi)\s+(?:có\s+)?(?:hủy|huỷ|cancel)|(?:không|ko|k|chưa)\s+(?:muốn|cần)\s+(?:hủy|huỷ|cancel)|(?:không|ko|k)\s+(?:hủy|huỷ)(?!\s*(?:đơn\s+)?(?:được|đc|dc|nổi)\b)",
     re.IGNORECASE,
 )
 _CANCEL_RE = re.compile(r"hủy|huỷ|huy don|cancel|không lấy nữa|không nhận nữa|thôi không đặt", re.IGNORECASE)
-_REFUND_NEGATION_RE = re.compile(r"(?:đừng|không|ko|k|chưa|khỏi)\s+(?:muốn\s+|cần\s+)?hoàn\s+(?:lại\s+)?tiền", re.IGNORECASE)
+_REFUND_NEGATION_RE = re.compile(r"(?:đừng|không|ko|k|chưa|khỏi)\s+(?:có\s+)?(?:muốn\s+|cần\s+)?hoàn\s+(?:lại\s+)?tiền", re.IGNORECASE)
 _REFUND_RE = re.compile(r"hoàn\s+(?:lại\s+)?tiền|hoan\s+tien|trả\s+lại\s+tiền", re.IGNORECASE)
-_FAKE_CASE_ID_RE = re.compile(r"(?:\(\s*)?(?:mã\s*ca(?:\s+hỗ\s*trợ)?\s*:?\s*)?\bCS-[A-Za-z0-9-]+\b(?:\s*\))?", re.IGNORECASE)
+_CASE_ID_TOKEN_RE = re.compile(r"\bCS-[A-Za-z0-9-]+\b", re.IGNORECASE)
+_PAREN_CASE_ID_RE = re.compile(r"\(\s*[^()]*\bCS-[A-Za-z0-9-]+\b[^()]*\)", re.IGNORECASE)
+_BARE_CASE_ID_RE = re.compile(r"(?:với\s+)?(?:mã\s*ca(?:\s+hỗ\s*trợ)?\s*:?\s*)?\bCS-[A-Za-z0-9-]+\b", re.IGNORECASE)
 _REQUIRED_KEYS = ("phan_loai", "quyet_dinh", "so_tien")
 _DECISIONS = ("HUY_HOAN", "VOUCHER", "HOI_LAI", "CHUYEN_NV", "TU_CHOI")
 
@@ -119,7 +121,7 @@ QUY TẮC BẮT BUỘC:
    - `MISSING_ORDER`: `order.found` là `false` (chưa có mã đơn hoặc mã không tồn tại trong hệ thống) và không thuộc 2 nhóm trên. Khi đó: `request_type="NONE"`, `quyet_dinh="HOI_LAI"`, `so_tien=0`.
    - `IN_SCOPE`: `order.found` là `true` và yêu cầu liên quan tới kẹt đơn, hủy đơn hoặc giao trễ.
 3. Cách gán `request_type` khi `phan_loai` là `IN_SCOPE`:
-   - `HUY_DON`: CHỈ khi khách nói rõ muốn hủy đơn (vd "hủy giúp tôi", "không lấy nữa"). Than chờ lâu mà không đòi hủy thì KHÔNG phải HUY_DON.
+   - `HUY_DON`: khi khách nói rõ muốn hủy đơn (vd "hủy giúp tôi", "không lấy nữa", không kèm phủ định như "đừng hủy"), HOẶC đòi hoàn tiền ("hoàn tiền", "hoàn lại tiền") khi đơn chưa có tài xế (`status == "waiting_driver"` và `driver_status == "none"`). Than chờ lâu mà không đòi hủy (và không đòi hoàn tiền trên đơn chưa tài xế) thì KHÔNG phải `HUY_DON`.
    - `KHIEU_NAI_TRE`: Mọi trường hợp còn lại — khách than giao trễ / ghép đơn trễ / chờ lâu chưa có tài xế / đòi voucher / bồi thường / hỏi đơn bao giờ giao / chấp nhận chờ tiếp.
 4. Quy tắc ra quyết định trong `IN_SCOPE`:
    - Nếu `trang_thai_hop_le` là `false` -> `CHUYEN_NV`, `so_tien=0`.
@@ -239,10 +241,15 @@ def _render_template(decision: str, amount: int, ma_ca: str, reason: str) -> str
     return "Bạn vui lòng cung cấp hoặc kiểm tra lại mã đơn hàng (ví dụ DH001) để mình tra cứu và hỗ trợ nhé."
 
 
-def _strip_invented_case_ids(reply_text: str) -> str:
-    """Loại bỏ mã ca CS-... do model tự bịa trong tra_loi_khach trước khi gắn mã thật."""
-    cleaned = _FAKE_CASE_ID_RE.sub(" ", reply_text or "")
-    cleaned = re.sub(r"\(\s*\)", "", cleaned)
+def _reconcile_case_ids(reply_text: str, decision: str, ma_ca: str) -> str:
+    """Đồng bộ mã ca CS-... theo quyết định cuối: thay thế khi CHUYEN_NV, xóa gọn khi không phải CHUYEN_NV."""
+    text = reply_text or ""
+    if decision == "CHUYEN_NV":
+        if _CASE_ID_TOKEN_RE.search(text):
+            return _CASE_ID_TOKEN_RE.sub(ma_ca, text)
+        return text
+    cleaned = _PAREN_CASE_ID_RE.sub(" ", text)
+    cleaned = _BARE_CASE_ID_RE.sub(" ", cleaned)
     cleaned = re.sub(r"\s+([.,;!?])", r"\1", cleaned)
     return re.sub(r"\s{2,}", " ", cleaned).strip()
 
@@ -334,7 +341,7 @@ def answer(text: str) -> dict:
     llm_decision = str(parsed.get("quyet_dinh") or "").strip().upper()
     raw_amount = _safe_int(parsed.get("so_tien", 0), 0)
     llm_reason = str(parsed.get("ly_do") or "").strip()
-    tra_loi_khach = _strip_invented_case_ids(_sanitize_reply(str(parsed.get("tra_loi_khach") or "")))
+    tra_loi_khach = _sanitize_reply(str(parsed.get("tra_loi_khach") or ""))
 
     if phan_loai == "OUT_OF_SCOPE":
         final_decision = "CHUYEN_NV"
@@ -415,8 +422,11 @@ def answer(text: str) -> dict:
                 note("ghi đè câu trả lời: thiếu nháp / nói đã hoàn tất / nhắc số tiền khác SO_TIEN")
                 tra_loi_khach = _render_template(final_decision, final_amount, ma_ca, ly_do_gate)
 
+    tra_loi_khach = _reconcile_case_ids(tra_loi_khach, final_decision, ma_ca)
     if final_decision == "CHUYEN_NV" and ma_ca not in tra_loi_khach:
         tra_loi_khach = f"{tra_loi_khach.rstrip('.!? ')} (mã ca hỗ trợ: {ma_ca})."
+    elif not tra_loi_khach:
+        tra_loi_khach = _render_template(final_decision, final_amount, ma_ca, llm_reason)
 
     # Bước 6: Post-Check PII & Đóng gói output
     return _format_output(final_decision, final_amount, ma_ca, tra_loi_khach)
