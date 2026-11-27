@@ -1,4 +1,4 @@
-# AI SPEC — FoodResolve: xử lý khiếu nại đơn giao đồ ăn bị kẹt / trễ · Nhóm RUA · Phòng __ · Zone __
+# AI SPEC — FoodResolve: xử lý khiếu nại đơn giao đồ ăn bị kẹt / trễ · Nhóm RUA · Phòng D303 · Zone 1
 
 > Mốc nộp: §7 chốt chuẩn "đạt" tại **CP2 19:30 Thứ Sáu 27/11** · §0–§7 nộp **CP3 10:00 Thứ Bảy 28/11** · đủ §0–§10 **CP4 14:30 Thứ Bảy 28/11** · §10 changelog ghi tiếp đến **23:59 Thứ Bảy 28/11**.
 > Đầu mỗi mục ghi bước guide (`02-guide.md` trong repo đề) chỉ cách điền. Mỗi mục ngắn, có số và nguồn; chi tiết để ở file được trỏ tới. Xoá dòng hướng dẫn trong ngoặc vuông khi điền xong.
@@ -43,29 +43,56 @@ Data BTC cấp đã dùng (nếu có — không commit nguyên file): __
   3. Đổi địa chỉ giao, khiếu nại thái độ tài xế → chuyển nhân viên.
   4. Hoàn tiền thật qua cổng thanh toán / phát voucher thật → chỉ tạo phiếu đề xuất nháp chờ xác nhận.
   5. Cung cấp SĐT / địa chỉ tài xế hay bất kỳ ai → từ chối.
-- **Sơ đồ** (khớp `codebase/agent.py`):
+- **Sơ đồ kiến trúc** (4 tầng Input → AI Core → Chặn rủi ro → Output, khớp `codebase/agent.py`):
 
 ```mermaid
 flowchart TD
-    A["Tin nhắn khách"] --> B["(code) Chuẩn hoá NFC"]
-    B --> C{"(code) Từ khoá an toàn thực phẩm?<br/>dị vật · gián · ngộ độc · ôi thiu · nôn…"}
-    C -- có --> X1["escalate_to_human → CHUYEN_NV<br/>0 token, không gọi AI"]
-    C -- không --> D["(code) Regex mã đơn DHxxx"]
-    D --> E["(tool) get_policy · get_order · get_complaint_history<br/>số phút tính bằng code"]
-    E --> F["(AI) call_model 1 lần → JSON<br/>phan_loai · request_type · quyet_dinh · so_tien · tra_loi_khach"]
-    F --> G{"(code) Parse JSON + đủ khoá bắt buộc?"}
-    G -- không --> X2["CHUYEN_NV"]
-    G -- có --> H{"phan_loai"}
-    H -- OUT_OF_SCOPE --> X3["CHUYEN_NV"]
-    H -- SECURITY_PII --> X4["TU_CHOI"]
-    H -- "đơn không tìm thấy" --> X5["HOI_LAI — hỏi lại 1 câu"]
-    H -- IN_SCOPE --> I["(code) request_type: HUY_DON chỉ khi khách nói rõ muốn hủy"]
-    I --> J["(tool) check_limit — code thuần<br/>quyết định + số tiền theo policy.json"]
-    J --> K{"Chính sách cho chi tiền<br/>và AI đề xuất cùng quyết định?"}
-    K -- "khác nhau" --> X6["CHUYEN_NV — người duyệt"]
-    K -- "khớp / không chi tiền" --> L["SO_TIEN = amount_formula<br/>ghi đè câu trả lời nếu sai số / nói đã hoàn"]
-    X1 & X2 & X3 & X4 & X5 & X6 & L --> Z["(code) Ẩn SĐT + dòng 1:<br/>[QUYET_DINH=… | SO_TIEN=… | MA_CA=…]"]
+    subgraph S1["① INPUT — dữ liệu vào (code + tool, không AI)"]
+        A["Tin nhắn khách"] --> B["Chuẩn hoá NFC + regex mã đơn DHxxx"]
+        C["Tool tra cứu: get_order · get_policy · get_complaint_history<br/>số phút tính bằng code từ data/"]
+    end
+    subgraph S2["② AI CORE — đúng 1 lời gọi model"]
+        D["call_model: SYSTEM + dữ liệu hệ thống + tin nhắn khách<br/>→ JSON phan_loai · request_type · quyet_dinh · so_tien · tra_loi_khach"]
+    end
+    subgraph S3["③ CHẶN RỦI RO — code thuần, không gọi AI"]
+        R0{"Từ khoá an toàn thực phẩm?<br/>chạy TRƯỚC AI, 0 token"}
+        R1{"JSON hợp lệ + đủ khoá bắt buộc?"}
+        R2{"phan_loai"}
+        R3["request_type: HUY_DON chỉ khi khách nói rõ muốn hủy"]
+        R4["check_limit: quyết định + số tiền theo policy.json<br/>HUY_HOAN = total ≤ 300.000đ · VOUCHER = min(30.000đ, total)"]
+        R5{"AI và chính sách cùng quyết định?"}
+    end
+    subgraph S4["④ OUTPUT"]
+        O1["CHUYEN_NV + escalate_to_human<br/>bản nháp mã ca CS-…"]
+        O2["TU_CHOI hoặc HOI_LAI, 0đ"]
+        O3["Quyết định của check_limit<br/>HUY_HOAN / VOUCHER chỉ là phiếu đề xuất nháp"]
+        Z["Ẩn SĐT + dòng 1 cố định QUYET_DINH · SO_TIEN · MA_CA<br/>+ câu trả lời nêu lý do bằng số"]
+    end
+    B --> R0
+    R0 -- có --> O1
+    R0 -- không --> C
+    C --> D
+    D --> R1
+    R1 -- "không" --> O1
+    R1 -- "có" --> R2
+    R2 -- "OUT_OF_SCOPE" --> O1
+    R2 -- "SECURITY_PII / không thấy đơn" --> O2
+    R2 -- "IN_SCOPE" --> R3
+    R3 --> R4
+    R4 --> R5
+    R5 -- "khác nhau mà chính sách cho chi tiền" --> O1
+    R5 -- "khớp" --> O3
+    O1 --> Z
+    O2 --> Z
+    O3 --> Z
 ```
+
+  | Tầng | Thành phần trong code | Vai trò |
+  |---|---|---|
+  | ① Input | `answer()` chuẩn hoá NFC, `_extract_order_id`, `get_order` / `get_policy` / `get_complaint_history` (`codebase/tools.py`) | Lấy căn cứ thật từ `data/`; số phút tính bằng code, không để AI tính |
+  | ② AI Core | `call_model` (`codebase/ai.py`), 1 lần / tin nhắn; CP2 chạy chế độ giả → JSON không đọc được → `CHUYEN_NV` | Phân loại yêu cầu (trong / ngoài phạm vi, đòi hủy hay than trễ) và viết câu trả lời |
+  | ③ Chặn rủi ro | `_has_food_safety_issue` (trước AI) · kiểm JSON + khoá bắt buộc · `_resolve_request_type` · `check_limit` · luật "chỉ được hạ quyết định" · `_mentions_other_amount` | Không chi vượt hạn mức, không tự hủy đơn khách không đòi, không để AI tự quyết số tiền |
+  | ④ Output | `_format_output` + `_sanitize_reply` · `escalate_to_human` | Dòng `[QUYET_DINH=… \| SO_TIEN=… \| MA_CA=…]` để chấm bằng code; ẩn SĐT; ca chuyển người chỉ là bản nháp |
 
 - **Hình dạng:** [x] workflow cố định · [ ] một agent · [ ] nhiều agent — các bước lặp lại giống nhau cho mọi tin nhắn (tra đơn → phân loại → kiểm hạn mức) và đều đã biết trước, nên AI chỉ cần gọi **1 lần** ở bước phân loại; tiền do code quyết theo `policy.json`. **Không** chọn agent tự chọn bước vì không có bước nào cần AI tự quyết gọi công cụ nào: agent sẽ tốn nhiều lượt gọi model hơn, khó đo, và mở thêm đường để model tự gọi công cụ chi tiền.
 - **AI dựa vào đâu** — mỗi công cụ (khớp `codebase/tools.py`):
