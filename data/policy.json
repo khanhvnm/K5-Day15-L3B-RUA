@@ -40,7 +40,7 @@
     "3. Thiếu mã đơn hoặc không tìm thấy trong orders.json -> HOI_LAI (0đ)",
     "4. Cặp (status, driver_status) không nằm trong valid_status_combos (vd DH030: waiting_driver + picked_up) -> CHUYEN_NV (0đ)",
     "5. Đơn đã cancelled (vd DH022) mà đòi hủy/hoàn/voucher, hoặc đã có bồi thường cùng (order_id, loại bồi thường) trong phiên -> TU_CHOI (0đ)",
-    "6. Chưa đạt ngưỡng: HUY_DON với phut_tu_luc_dat <= 20, hoặc KHIEU_NAI_TRE với phut_tre_so_voi_eta <= 30 (kể cả đơn đã giao đúng giờ) -> TU_CHOI (0đ)",
+    "6. Chưa đạt ngưỡng: HUY_DON trên đơn chưa có tài xế (driver_status='none') với phut_tu_luc_dat <= 20, hoặc KHIEU_NAI_TRE với phut_tre_so_voi_eta <= 30 (kể cả đơn đã giao đúng giờ) -> TU_CHOI (0đ)",
     "7. complaints_in_month >= 3: nếu quyết định theo mục 8–9 là HUY_HOAN hoặc VOUCHER thì đổi thành CHUYEN_NV (0đ); không đè lên HOI_LAI / TU_CHOI / CHUYEN_NV của các mục trên",
     "8. HUY_DON (status waiting_driver hoặc delivering): restaurant_prepared=true HOẶC driver_status != 'none' HOẶC total > 300.000đ -> CHUYEN_NV; còn lại (chưa tài xế, chưa nấu, phut_tu_luc_dat > 20, total <= 300.000đ) -> HUY_HOAN 100% total",
     "9. KHIEU_NAI_TRE (status waiting_driver, delivering hoặc delivered): phut_tre_so_voi_eta > 60 -> CHUYEN_NV; 30 < phut_tre_so_voi_eta <= 60 -> VOUCHER min(30000, total)"

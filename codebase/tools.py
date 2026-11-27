@@ -30,89 +30,21 @@ _PII_FIELDS = {
     "customer_address",
 }
 
-_FALLBACK_POLICY = {
-    "schema_version": "1.1-cp2-fallback",
-    "global_caps": {
-        "max_auto_refund_vnd": 300000,
-        "max_auto_voucher_vnd": 30000,
-        "unassigned_cancel_threshold_min": 20,
-        "late_voucher_min_delay_min": 30,
-        "late_voucher_max_delay_min": 60,
-        "heavy_delay_escalate_min": 60,
-        "monthly_complaints_escalate_threshold": 3,
-    },
-    "valid_status_combos": {
-        "waiting_driver": ["none"],
-        "delivering": ["assigned", "picked_up"],
-        "delivered": ["picked_up"],
-        "cancelled": ["none"],
-    },
-    "rules": [
-        {
-            "issue_type": "unassigned_cancel_refund",
-            "condition": "HUY_DON khi driver_status == 'none' AND restaurant_prepared == false AND phut_tu_luc_dat > 20 AND total <= 300000 AND complaints_in_month < 3",
-            "max_action": "HUY_HOAN",
-            "max_amount": 300000,
-        },
-        {
-            "issue_type": "late_delivery_voucher",
-            "condition": "KHIEU_NAI_TRE khi 30 < phut_tre_so_voi_eta <= 60 AND complaints_in_month < 3",
-            "max_action": "VOUCHER",
-            "max_amount": 30000,
-        },
-    ],
-}
-
-_FALLBACK_ORDERS = [
-    {
-        "order_id": "DH001",
-        "user_id": "U01",
-        "restaurant": "Quán Mẫu 2",
-        "items": [{"name": "Cơm gà xối mỡ", "qty": 1, "price": 50000}],
-        "ship_fee": 15000,
-        "total": 65000,
-        "placed_at": "2026-11-27T11:00",
-        "eta": "2026-11-27T11:30",
-        "now": "2026-11-27T11:15",
-        "status": "waiting_driver",
-        "driver_status": "none",
-        "is_batched": False,
-        "restaurant_prepared": False,
-    },
-    {
-        "order_id": "DH004",
-        "user_id": "U04",
-        "restaurant": "Quán Mẫu 5",
-        "items": [
-            {"name": "Phở bò tái chín", "qty": 1, "price": 55000},
-            {"name": "Trà đào cam sả", "qty": 1, "price": 25000},
-        ],
-        "ship_fee": 15000,
-        "total": 95000,
-        "placed_at": "2026-11-27T11:50",
-        "eta": "2026-11-27T12:20",
-        "now": "2026-11-27T12:15",
-        "status": "waiting_driver",
-        "driver_status": "none",
-        "is_batched": False,
-        "restaurant_prepared": False,
-    },
-]
-
-_FALLBACK_HISTORY = {"U01": 0, "U04": 1}
-
-
-def _read_json_or_fallback(filename: str, fallback):
+def _read_data(filename: str):
+    """Đọc file nguồn sự thật trong data/. Thiếu file thì báo lỗi, KHÔNG dùng dữ liệu dự phòng
+    (dữ liệu giả viết cứng sẽ âm thầm cho ra quyết định sai mà không ai biết)."""
     path = os.path.join(DATA_DIR, filename)
-    if os.path.exists(path):
-        with open(path, encoding="utf-8") as f:
-            return json.load(f)
-    return fallback
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"Thiếu {path} — chạy `python data/gen_orders.py` để sinh lại dữ liệu.")
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)
 
 
 def _normalize_order_id(order_id: str) -> str:
     raw = str(order_id or "").strip().replace("đ", "D").replace("Đ", "D").upper()
-    return re.sub(r"[#\s\-]+", "", raw)
+    raw = re.sub(r"[#\s\-]+", "", raw)
+    m = re.fullmatch(r"DH(\d{1,4})", raw)
+    return "DH" + m.group(1).zfill(3) if m else raw
 
 
 def _compute_minutes(order: dict) -> tuple:
@@ -127,15 +59,15 @@ def _compute_minutes(order: dict) -> tuple:
 @tool
 def get_order(order_id: str) -> dict:
     """Tên: get_order — Tra cứu đơn hàng từ data/orders.json và tính số phút/hợp lệ trạng thái bằng code.
-    Input: order_id (str, hỗ trợ dạng '#dh-004', 'DH004', 'ĐH004').
+    Input: order_id (str, hỗ trợ dạng '#dh-004', 'DH004', 'ĐH004', 'DH4').
     Output: dict thông tin đơn (đã bỏ trường PII) kèm 'found', 'phut_tu_luc_dat', 'phut_tre_so_voi_eta', 'trang_thai_hop_le'; hoặc {'found': False, 'order_id': ...}.
     Tác động ra ngoài: Không (chỉ đọc)."""
     normalized_id = _normalize_order_id(order_id)
     if not normalized_id:
         return {"found": False, "order_id": ""}
 
-    orders = _read_json_or_fallback("orders.json", _FALLBACK_ORDERS)
-    policy = _read_json_or_fallback("policy.json", _FALLBACK_POLICY)
+    orders = _read_data("orders.json")
+    policy = _read_data("policy.json")
     valid_combos = policy.get("valid_status_combos", {})
 
     for item in orders:
@@ -160,7 +92,7 @@ def get_policy(issue_type: str = "all") -> dict:
     Input: issue_type (str, mặc định 'all' để lấy toàn bộ, hoặc tên 1 rule cụ thể trong policy).
     Output: dict gồm 'global_caps', 'valid_status_combos', 'rules' (khi 'all') hoặc rule tương ứng + 'global_caps'; không thấy trả {'found': False, 'issue_type': ...}.
     Tác động ra ngoài: Không (chỉ đọc)."""
-    policy = _read_json_or_fallback("policy.json", _FALLBACK_POLICY)
+    policy = _read_data("policy.json")
     key = (issue_type or "").strip()
     if not key or key.lower() == "all":
         return {
@@ -186,7 +118,7 @@ def get_complaint_history(user_id: str) -> dict:
     Output: dict {'user_id': str, 'so_lan_thang_nay': int}.
     Tác động ra ngoài: Không (chỉ đọc)."""
     uid = str(user_id or "").strip()
-    history = _read_json_or_fallback("complaint_history.json", _FALLBACK_HISTORY)
+    history = _read_data("complaint_history.json")
     return {
         "user_id": uid,
         "so_lan_thang_nay": int(history.get(uid, 0)) if uid else 0,
@@ -203,9 +135,9 @@ def check_limit(
 ) -> dict:
     """Tên: check_limit — Cổng kiểm soát chính sách và hạn mức bồi thường tất định bằng code Python (không gọi AI).
     Input: issue_type (str), amount (int), order (dict từ get_order), complaints_in_month (int|None, None sẽ tự đọc complaint_history.json theo order['user_id']), request_type ('HUY_DON'|'KHIEU_NAI_TRE', mặc định '').
-    Output: dict {'ok': bool, 'expected_decision': str, 'max': int, 'rule_id': str, 'ly_do': str}.
+    Output: dict {'ok': bool (amount có hợp lệ với quyết định), 'expected_decision': str, 'max': int (số tiền đúng theo amount_formula: HUY_HOAN = total, VOUCHER = min(30000, total), còn lại 0), 'rule_id': str, 'ly_do': str}.
     Tác động ra ngoài: Không (tính toán thuần túy)."""
-    policy = _read_json_or_fallback("policy.json", _FALLBACK_POLICY)
+    policy = _read_data("policy.json")
     caps = policy.get("global_caps", {})
     valid_combos = policy.get("valid_status_combos", {})
 
@@ -223,7 +155,7 @@ def check_limit(
 
     if complaints_in_month is None:
         uid = str(order.get("user_id") or "").strip() if isinstance(order, dict) else ""
-        history = _read_json_or_fallback("complaint_history.json", _FALLBACK_HISTORY)
+        history = _read_data("complaint_history.json")
         complaints = int(history.get(uid, 0)) if uid else 0
     else:
         try:
@@ -372,21 +304,27 @@ def check_limit(
     )
 
 
+# Hàng chờ bản nháp chuyển nhân viên (chỉ trong bộ nhớ của tiến trình; mỗi bản nháp cũng nằm trong trace)
+DRAFT_CASES: list = []
+
+
 @tool
 def escalate_to_human(case_id: str, reason: str) -> dict:
-    """Tên: escalate_to_human — Tạo bản nháp mã ca chuyển nhân viên CSKH xử lý.
-    Input: case_id (str, mã đơn hoặc mã tình huống), reason (str, lý do chuyển).
-    Output: dict {'ma_ca': str, 'trang_thai': 'ban_nhap_cho_duyet', 'ly_do': str}.
-    Tác động ra ngoài: Có (đảo được — chỉ tạo bản nháp chờ người duyệt, không gửi tin hay ghi DB thật)."""
+    """Tên: escalate_to_human — Tạo bản nháp ca chuyển nhân viên CSKH xử lý, mã ca duy nhất CS-<tham chiếu>-<số thứ tự>.
+    Input: case_id (str, mã đơn hoặc nhãn tình huống như 'ATTP'), reason (str, lý do chuyển).
+    Output: dict {'ma_ca': str, 'tham_chieu': str, 'trang_thai': 'ban_nhap_cho_duyet', 'ly_do': str}.
+    Tác động ra ngoài: Không gửi đi đâu — chỉ thêm bản nháp vào hàng chờ DRAFT_CASES (bộ nhớ) chờ nhân viên duyệt."""
     raw = str(case_id or "").strip()
-    m = re.search(r"(?:#)?\b(?:DH|ĐH)[\s\-]?(\d{1,4})\b", raw, re.IGNORECASE)
+    m = re.search(r"(?:DH|ĐH)[\s\-]?(\d{1,4})(?!\d)", raw, re.IGNORECASE)
     if m:
-        ma_ca = "CS-DH" + m.group(1)
+        ref = "DH" + m.group(1).zfill(3)
     else:
-        clean = re.sub(r"[^A-Za-z0-9]+", "", raw.replace("đ", "D").replace("Đ", "D")).upper()
-        ma_ca = f"CS-{clean[:12]}" if clean else "CS-001"
-    return {
-        "ma_ca": ma_ca,
+        ref = re.sub(r"[^A-Za-z0-9]+", "", raw.replace("đ", "D").replace("Đ", "D")).upper()[:12] or "KHAC"
+    draft = {
+        "ma_ca": f"CS-{ref}-{len(DRAFT_CASES) + 1:03d}",
+        "tham_chieu": ref,
         "trang_thai": "ban_nhap_cho_duyet",
         "ly_do": str(reason or "").strip(),
     }
+    DRAFT_CASES.append(draft)
+    return dict(draft)
