@@ -200,7 +200,7 @@ Thứ tự: 17:00–17:20 cả nhóm chốt policy + schema dữ liệu (mục 0
   - [x] `data/policy.json`, `data/complaint_history.json`
   - [x] `data/gen_orders.py` chạy lại ra đúng file (seed cố định)
   - [x] `data/DATA_CARD.md` bản đầu đủ bảng cho từng dataset
-  - [ ] Gửi Vũ Thành + Việt Anh danh sách `order_id` → ca tương ứng (để viết tool và câu thử)
+  - [x] Gửi Vũ Thành + Việt Anh danh sách `order_id` → ca tương ứng (để viết tool và câu thử)
 
 ### CP2-2 · Khung bản chạy thử (AI giả) — **Vũ Thành**
 - **Nhánh:** `feat/cp2-agent-skeleton`
@@ -250,8 +250,8 @@ Thứ tự: 17:00–17:20 cả nhóm chốt policy + schema dữ liệu (mục 0
   - [x] `eval/benchmark.csv` ≥10 câu, không còn dòng mẫu, có `kho` và `tu_choi`
   - [x] `eval/metric_spec.yaml` 3 metric, không còn `<…>`
   - [x] `python run.py check` không báo lỗi phần benchmark + metric
-  - [ ] Chấm thử 5 output khớp ≥4/5, ghi trong `eval/README.md`
-  - [ ] `eval/README.md` mục 1–4
+  - [x] Chấm thử 5 output khớp ≥4/5, ghi trong `eval/README.md`
+  - [x] `eval/README.md` mục 1–4
 
 ### CP2-4 · Spec thiết kế + khóa chuẩn đạt — **Khánh**
 - **Nhánh:** `docs/cp2-spec-design`
@@ -286,9 +286,9 @@ Thứ tự: 17:00–17:20 cả nhóm chốt policy + schema dữ liệu (mục 0
   3. Mỗi người gắn nhãn file part của mình (part1 Khánh · part2 Vũ Thành · part3 Duy Thành · part4 Việt Anh). Gắn 30 dòng chung với 1 người khác để kiểm độ khớp.
   4. Khánh gửi khảo sát Google Form lúc 17:00 cho lớp L3B + nhóm bạn (mục tiêu **≥20 người ngoài nhóm**). Câu hỏi gợi ý: app dùng · số đơn/tháng · số lần đơn bị kẹt/trễ trong 1 tháng qua · lần gần nhất trễ thêm bao lâu · đã làm gì (chờ / cố hủy / chat trợ lý / gọi tổng đài / bỏ) · có hủy/hoàn/voucher được không · giá trị đơn · điều khó chịu nhất · sau đó có giảm dùng app không. **Không** thu tên/email.
 - **Checklist output:**
-  - [ ] Script lấy mẫu + 4 file part trong `evidence/labels/`
-  - [ ] `evidence/data-mining.md` có cách chọn mẫu + định nghĩa nhãn **trước khi** đếm
-  - [ ] `evidence/hypothesis.md` 2 dòng "Mình nghĩ… / Mình đúng nếu thấy…"
+  - [x] Script lấy mẫu + 4 file part trong `evidence/labels/`
+  - [x] `evidence/data-mining.md` có cách chọn mẫu + định nghĩa nhãn **trước khi** đếm
+  - [x] `evidence/hypothesis.md` 2 dòng "Mình nghĩ… / Mình đúng nếu thấy…"
   - [ ] Form khảo sát đã gửi, `evidence/survey/questions.md` có nguyên bộ câu hỏi + kênh gửi + giờ mở
 
 ### CP2-R · Review sản phẩm CP2 — **Khánh**
@@ -298,9 +298,9 @@ Thứ tự: 17:00–17:20 cả nhóm chốt policy + schema dữ liệu (mục 0
 - **Kiểm chéo hợp đồng:** `order_id` trong câu thử có trong `orders.json` · tên trường Vũ Thành đọc khớp với tên trường Duy Thành sinh · ngưỡng trong `check_limit` khớp `policy.json` và §4.
 - **Checklist output:**
   - [ ] 3 PR (data, code khung, eval) đã có comment review và đã merge
-  - [ ] Đã chấm thử 5 output với vai người thứ hai, kết quả ghi trong `eval/README.md`
-  - [ ] Đã tự tính tay `expected` cho 3 câu, khớp dữ liệu
-  - [ ] Bảng "Việc sửa sau review" đã cập nhật
+  - [x] Đã chấm thử 5 output với vai người thứ hai, kết quả ghi trong `eval/README.md`
+  - [x] Đã tự tính tay `expected` cho 3 câu, khớp dữ liệu
+  - [x] Bảng "Việc sửa sau review" đã cập nhật
 
 ---
 
@@ -495,4 +495,17 @@ Thứ tự: 17:00–17:20 cả nhóm chốt policy + schema dữ liệu (mục 0
 
 | Giờ | PR / file | Việc phải sửa | Ai | Hạn | Xong |
 |---|---|---|---|---|---|
-| | | | | | ☐ |
+| 17:20 | PR #1 → #2 · `data/policy.json` | `evidence_basis` có số không nguồn (98,5% · trung vị 60') → ghi *(tự ước tính)* | Khánh | CP2 | ☑ |
+| 17:20 | PR #1 → #2 · `data/policy.json` | Mục 2, 5 có 2 quyết định; ca chưa tài xế than trễ không có rule; trễ nặng đá nhánh hủy; thiếu `valid_status_combos` | Khánh | CP2 | ☑ |
+| 17:20 | PR #1 → #2 · `data/DATA_CARD.md`, `gen_orders.py` | Link `file:///D:/`; seed không có tác dụng; thiếu kiểm chéo `policy.json` | Khánh | CP2 | ☑ |
+| 17:32 | nhánh CP2-5 → PR #6 · `sample_reviews.py`, `data-mining.md` | Fallback `_local/` có thể commit nhầm file thô; chạy lại xoá mất nhãn; chưa có luật chọn nhãn chính | Khánh | CP2 | ☑ |
+| 18:00 | PR #3 → #4 · `docs/reviews_food_2026.csv` | Nguyên file review thô (có `user_hash`) bị commit → gỡ khỏi repo + chặn `docs/*.csv` | Khánh | CP2 | ☑ |
+| 18:00 | PR #3 → #4 · `eval/` | 8/12 câu thử lệch mã đơn với data; B10 mâu thuẫn metric `tu_choi`; thiếu câu an toàn thực phẩm / trần 300k / biên 30' 60'; B02 trần 30k cho đơn 22k | Việt Anh + Khánh | CP2 | ☑ |
+| 18:45 | PR #5 → #7 · `codebase/agent.py`, `tools.py` | JSON hỏng vẫn chi voucher; tự hủy đơn khi khách chỉ than trễ; lấy số tiền của AI; NFD lọt chặn an toàn thực phẩm; dữ liệu dự phòng ngầm; mã ca trùng | Vũ Thành + Khánh | CP2 | ☑ |
+| 18:45 | PR #5 → #7 · `spec.md` §4 | Bảng công cụ + "phần nào còn giả" còn trống | Vũ Thành + Khánh | CP2 | ☑ |
+| 18:55 | CP2-5 · `evidence/survey/questions.md` | Chưa có file bộ câu hỏi khảo sát | Khánh | CP2 | ☑ (còn điền link · kênh · giờ mở) |
+| 18:55 | CP2-3 · `eval/README.md` mục 3 | Chấm thử 5 output với người thứ hai (phiếu `eval/cham-thu-cp2.md`), cần khớp ≥ 4/5 | Việt Anh + Khánh | 19:30 T6 | ☑ khớp 5/5 |
+| 18:55 | CP2-4 · form CP2 | Nộp form CP2 kèm chuẩn đạt §7 + tiến độ bằng chứng | Khánh | 19:30 T6 | ☐ |
+| 18:55 | lịch sử git · commit `b7cc79b` | File review thô vẫn còn trong lịch sử → nhóm quyết có viết lại lịch sử + force-push `main` không | Cả nhóm | ngoài giờ freeze | ☐ |
+| 18:55 | `spec.md` header, §3 | Phòng / Zone · Data BTC đã dùng · mỗi người thử 10' trợ lý ShopeeFood / GrabFood / be, gửi 1 dòng | Cả nhóm | CP3 10:00 T7 | ☐ |
+| 18:55 | `evidence/labels/` | Gắn nhãn tay 300 review (0/300) + 30 dòng chung kiểm độ khớp | Cả nhóm | CP3 10:00 T7 | ☐ |
