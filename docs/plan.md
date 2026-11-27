@@ -196,10 +196,10 @@ Thứ tự: 17:00–17:20 cả nhóm chốt policy + schema dữ liệu (mục 0
   5. Tên quán dạng "Quán Mẫu N", **không** có tên người, SĐT, địa chỉ thật.
   6. `data/DATA_CARD.md` bản đầu: 3 dataset (orders, policy, history) — nhãn `synthetic`, seed, script, số dòng, giới hạn. Thêm mục "Review Google Play" (dùng cho bằng chứng + câu thử, **không** cho AI tra cứu).
 - **Checklist output:**
-  - [ ] `data/orders.json` 25–30 đơn, phủ đủ ca ở bước 2
-  - [ ] `data/policy.json`, `data/complaint_history.json`
-  - [ ] `data/gen_orders.py` chạy lại ra đúng file (seed cố định)
-  - [ ] `data/DATA_CARD.md` bản đầu đủ bảng cho từng dataset
+  - [x] `data/orders.json` 25–30 đơn, phủ đủ ca ở bước 2
+  - [x] `data/policy.json`, `data/complaint_history.json`
+  - [x] `data/gen_orders.py` chạy lại ra đúng file (seed cố định)
+  - [x] `data/DATA_CARD.md` bản đầu đủ bảng cho từng dataset
   - [ ] Gửi Vũ Thành + Việt Anh danh sách `order_id` → ca tương ứng (để viết tool và câu thử)
 
 ### CP2-2 · Khung bản chạy thử (AI giả) — **Vũ Thành**
