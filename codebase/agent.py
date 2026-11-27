@@ -10,6 +10,7 @@ Workflow cố định 1 lời gọi AI + Chốt chặn 2 đầu bằng code:
 """
 import json
 import re
+import unicodedata
 
 from ai import call_model
 from tools import (
@@ -23,12 +24,22 @@ from tracing import note
 
 MAX_STEPS = 1
 
-_ORDER_ID_RE = re.compile(r"(?:#)?\b(?:DH|ĐH)[\s\-]?(\d{1,4})\b", re.IGNORECASE)
-_PHONE_RE = re.compile(r"\b0\d{9}\b|\b0\d{2,3}[\s.\-]\d{3}[\s.\-]\d{3,4}\b")
+_ORDER_ID_RE = re.compile(r"(?:DH|ĐH)[\s\-]?(\d{1,4})(?!\d)", re.IGNORECASE)
+_PHONE_RE = re.compile(
+    r"(?:\+84|\b0)\d{9}\b|(?:\+84[\s.\-]?|\b0)\d{2,3}[\s.\-]\d{3}[\s.\-]\d{3,4}\b"
+)
 _DONE_CLAIM_RE = re.compile(
     r"\bđã\s+(?:được\s+)?(?:hủy|huỷ|hoàn(?:\s+(?:tiền|lại))?|cấp\s+voucher|tặng\s+voucher)\b",
     re.IGNORECASE,
 )
+
+_MONEY_RE = re.compile(r"(\d[\d.,]*)\s*(k|nghìn|ngàn|đ|đồng|vnd)(?![a-zà-ỹ])", re.IGNORECASE)
+# Thẻ phân cách prompt — xoá khỏi tin nhắn khách để không giả được khối dữ liệu hệ thống
+_PROMPT_TAG_RE = re.compile(r"<\s*/?\s*(?:du_lieu_he_thong|tin_nhan_khach_hang)\s*>", re.IGNORECASE)
+# Khách nói rõ muốn huỷ đơn — chỉ khi đó mới được vào nhánh HUY_DON
+_CANCEL_RE = re.compile(r"hủy|huỷ|huy don|cancel|không lấy nữa|không nhận nữa|thôi không đặt", re.IGNORECASE)
+_REQUIRED_KEYS = ("phan_loai", "quyet_dinh", "so_tien")
+_DECISIONS = ("HUY_HOAN", "VOUCHER", "HOI_LAI", "CHUYEN_NV", "TU_CHOI")
 
 # Từ khóa dương tính giả cần loại bỏ trước khi quét dấu hiệu an toàn thực phẩm
 _FOOD_FALSE_POSITIVES = (
@@ -37,6 +48,7 @@ _FOOD_FALSE_POSITIVES = (
     "đậm sâu",
     "sâu sắc",
     "thời gian",
+    "nôn nóng",
 )
 
 _FOOD_SAFETY_TERMS = (
@@ -67,6 +79,12 @@ _FOOD_SAFETY_TERMS = (
     "bị mốc",
     "bị chua",
     "hôi thối",
+    "bị hư",
+    "đồ hư",
+    "hư hỏng",
+    "nôn",
+    "ói",
+    "mùi lạ",
 )
 
 _FOOD_SAFETY_RE = re.compile(
@@ -94,8 +112,8 @@ QUY TẮC BẮT BUỘC:
    - `MISSING_ORDER`: `order.found` là `false` (chưa có mã đơn hoặc mã không tồn tại trong hệ thống) và không thuộc 2 nhóm trên. Khi đó: `request_type="NONE"`, `quyet_dinh="HOI_LAI"`, `so_tien=0`.
    - `IN_SCOPE`: `order.found` là `true` và yêu cầu liên quan tới kẹt đơn, hủy đơn hoặc giao trễ.
 3. Cách gán `request_type` khi `phan_loai` là `IN_SCOPE`:
-   - `HUY_DON`: Khách đòi hủy đơn / hoàn tiền, HOẶC đơn đang `waiting_driver` chưa có tài xế mà khách than chờ quá lâu (và không nói rõ muốn chờ để nhận voucher).
-   - `KHIEU_NAI_TRE`: Khách than giao trễ / ghép đơn trễ / đòi voucher / bồi thường / hỏi đơn bao giờ giao hoặc chấp nhận chờ tiếp.
+   - `HUY_DON`: CHỈ khi khách nói rõ muốn hủy đơn (vd "hủy giúp tôi", "không lấy nữa"). Than chờ lâu mà không đòi hủy thì KHÔNG phải HUY_DON.
+   - `KHIEU_NAI_TRE`: Mọi trường hợp còn lại — khách than giao trễ / ghép đơn trễ / chờ lâu chưa có tài xế / đòi voucher / bồi thường / hỏi đơn bao giờ giao / chấp nhận chờ tiếp.
 4. Quy tắc ra quyết định trong `IN_SCOPE`:
    - Nếu `trang_thai_hop_le` là `false` -> `CHUYEN_NV`, `so_tien=0`.
    - Nếu `status == "cancelled"` -> `TU_CHOI`, `so_tien=0`.
@@ -119,7 +137,7 @@ QUY TẮC BẮT BUỘC:
 
 
 def _has_food_safety_issue(text: str) -> bool:
-    cleaned = (text or "").lower()
+    cleaned = unicodedata.normalize("NFC", text or "").lower()
     for fp in _FOOD_FALSE_POSITIVES:
         cleaned = cleaned.replace(fp, " ")
     return bool(_FOOD_SAFETY_RE.search(cleaned))
@@ -127,7 +145,7 @@ def _has_food_safety_issue(text: str) -> bool:
 
 def _extract_order_id(text: str) -> str:
     m = _ORDER_ID_RE.search(text or "")
-    return ("DH" + m.group(1)) if m else ""
+    return ("DH" + m.group(1).zfill(3)) if m else ""
 
 
 def _parse_llm_json(raw: str):
@@ -159,18 +177,28 @@ def _safe_int(value, default: int = 0) -> int:
         return default
 
 
-def _infer_request_type(text: str, llm_decision: str, order: dict) -> str:
-    if llm_decision == "HUY_HOAN":
-        return "HUY_DON"
-    if llm_decision == "VOUCHER":
-        return "KHIEU_NAI_TRE"
-    lower = (text or "").lower()
-    if any(kw in lower for kw in ("hủy", "huỷ", "hoàn tiền", "hoan tien")):
-        return "HUY_DON"
-    if order.get("status") == "waiting_driver" and order.get("driver_status") == "none":
-        if "voucher" not in lower and "bù" not in lower and "trễ" not in lower:
-            return "HUY_DON"
+def _wants_cancel(text: str) -> bool:
+    return bool(_CANCEL_RE.search(text or ""))
+
+
+def _resolve_request_type(text: str, llm_req_type: str) -> str:
+    """HUY_DON chỉ khi khách nói rõ muốn hủy — kể cả khi model gán HUY_DON.
+    Huỷ đơn khách không đòi huỷ là mất bữa ăn của khách, đắt hơn nhiều so với hỏi lại."""
+    if _wants_cancel(text):
+        return "HUY_DON" if llm_req_type in ("HUY_DON", "", "NONE") else llm_req_type
     return "KHIEU_NAI_TRE"
+
+
+def _mentions_other_amount(reply: str, amount: int) -> bool:
+    """True nếu câu trả lời nhắc một số tiền khác với SO_TIEN cuối cùng."""
+    for num, unit in _MONEY_RE.findall(reply or ""):
+        digits = re.sub(r"[.,]", "", num)
+        if not digits.isdigit():
+            continue
+        value = int(digits) * (1000 if unit.lower() in ("k", "nghìn", "ngàn") else 1)
+        if value != amount:
+            return True
+    return False
 
 
 def _render_template(decision: str, amount: int, ma_ca: str, reason: str) -> str:
@@ -209,9 +237,21 @@ def _format_output(decision: str, amount: int, ma_ca: str, reply_text: str) -> d
     }
 
 
+def _escalate_fallback(order: dict, order_id: str, reason: str) -> dict:
+    esc = escalate_to_human(order.get("order_id") or order_id or "FALLBACK", reason)
+    ma_ca = esc["ma_ca"]
+    return _format_output(
+        "CHUYEN_NV",
+        0,
+        ma_ca,
+        f"Hệ thống đang chuyển yêu cầu của bạn sang nhân viên CSKH để kiểm tra trực tiếp (mã ca {ma_ca}).",
+    )
+
+
 def answer(text: str) -> dict:
     """Xử lý tin nhắn khiếu nại đơn giao đồ ăn theo workflow 6 bước."""
-    user_text = text or ""
+    # NFC: bàn phím macOS/iOS hay gửi tiếng Việt dạng tổ hợp (NFD) làm trượt từ khoá
+    user_text = unicodedata.normalize("NFC", text or "")
     order_id = _extract_order_id(user_text)
 
     # Bước 1: Pre-Guardrail An toàn thực phẩm (0 token, chạy trước AI)
@@ -249,7 +289,7 @@ def answer(text: str) -> dict:
         + json.dumps(sys_payload, ensure_ascii=False)
         + "\n</du_lieu_he_thong>\n\n"
         + "<tin_nhan_khach_hang>\n"
-        + user_text
+        + _PROMPT_TAG_RE.sub(" ", user_text)
         + "\n</tin_nhan_khach_hang>"
     )
     ai_res = call_model(SYSTEM, user_prompt)
@@ -258,17 +298,11 @@ def answer(text: str) -> dict:
     parsed = _parse_llm_json(ai_res.get("text", ""))
     if parsed is None:
         note("lỗi parse JSON hoặc chế độ giả -> fallback CHUYEN_NV")
-        esc = escalate_to_human(
-            order.get("order_id") or order_id or "FALLBACK",
-            "Không đọc được phản hồi chuẩn JSON hoặc đang chạy chế độ giả",
-        )
-        ma_ca = esc["ma_ca"]
-        return _format_output(
-            "CHUYEN_NV",
-            0,
-            ma_ca,
-            f"Hệ thống đang chuyển yêu cầu của bạn sang nhân viên CSKH để kiểm tra trực tiếp (mã ca {ma_ca}).",
-        )
+        return _escalate_fallback(order, order_id, "Không đọc được phản hồi chuẩn JSON hoặc đang chạy chế độ giả")
+    missing = [k for k in _REQUIRED_KEYS if k not in parsed]
+    if missing or str(parsed.get("quyet_dinh") or "").strip().upper() not in _DECISIONS:
+        note(f"JSON thiếu khoá {missing} hoặc quyet_dinh lạ -> fallback CHUYEN_NV")
+        return _escalate_fallback(order, order_id, "Phản hồi AI thiếu trường bắt buộc")
 
     # Bước 5: Cổng kiểm soát hậu kỳ (check_limit) + Ghi đè câu trả lời
     phan_loai = str(parsed.get("phan_loai") or "").strip().upper()
@@ -321,38 +355,41 @@ def answer(text: str) -> dict:
                     "Bạn vui lòng cung cấp mã đơn hàng (ví dụ DH001) để mình kiểm tra và hỗ trợ bạn ngay nhé."
                 )
     else:
-        if req_type not in ("HUY_DON", "KHIEU_NAI_TRE"):
-            req_type = _infer_request_type(user_text, llm_decision, order)
+        resolved = _resolve_request_type(user_text, req_type)
+        if resolved != req_type:
+            note(f"request_type {req_type or '-'} -> {resolved} (khách {'có' if _wants_cancel(user_text) else 'không'} đòi hủy)")
+        req_type = resolved
 
-        gate = check_limit(
-            llm_decision or req_type,
-            raw_amount,
-            order,
-            complaints_in_month,
-            req_type,
-        )
+        gate = check_limit(req_type, raw_amount, order, complaints_in_month, req_type)
         final_decision = gate["expected_decision"]
-        if final_decision in ("HUY_HOAN", "VOUCHER"):
-            final_amount = raw_amount if 0 < raw_amount <= gate["max"] else gate["max"]
-        else:
-            final_amount = 0
+        ly_do_gate = gate["ly_do"]
+        # Cổng chỉ được HẠ quyết định: chính sách cho chi tiền mà AI không đề xuất đúng mức đó
+        # -> AI và code bất đồng -> người duyệt, không tự chi.
+        if final_decision in ("HUY_HOAN", "VOUCHER") and llm_decision != final_decision:
+            note(f"AI đề xuất {llm_decision}, chính sách cho {final_decision} -> bất đồng, chuyển nhân viên")
+            ly_do_gate = (
+                f"Cần nhân viên xác nhận vì đánh giá tự động chưa thống nhất ({llm_decision} / {final_decision})"
+            )
+            final_decision = "CHUYEN_NV"
+        # Số tiền theo đúng amount_formula của policy, không lấy số của AI
+        final_amount = gate["max"] if final_decision in ("HUY_HOAN", "VOUCHER") else 0
 
         ma_ca = "-"
         if final_decision == "CHUYEN_NV":
-            esc = escalate_to_human(order["order_id"], gate["ly_do"])
+            esc = escalate_to_human(order["order_id"], ly_do_gate)
             ma_ca = esc["ma_ca"]
 
         if final_decision != llm_decision or final_amount != raw_amount or not tra_loi_khach:
             note(
                 f"check_limit ghi đè: {llm_decision}/{raw_amount} -> {final_decision}/{final_amount} ({gate['rule_id']})"
             )
-            tra_loi_khach = _render_template(final_decision, final_amount, ma_ca, gate["ly_do"])
+            tra_loi_khach = _render_template(final_decision, final_amount, ma_ca, ly_do_gate)
         elif final_decision in ("HUY_HOAN", "VOUCHER"):
             low_reply = tra_loi_khach.lower()
             has_draft = ("nháp" in low_reply) or ("đề xuất" in low_reply)
-            if not has_draft or _DONE_CLAIM_RE.search(low_reply):
-                note("check_limit ghi đè câu trả lời thiếu nháp/mâu thuẫn đã hoàn tất")
-                tra_loi_khach = _render_template(final_decision, final_amount, ma_ca, gate["ly_do"])
+            if not has_draft or _DONE_CLAIM_RE.search(low_reply) or _mentions_other_amount(low_reply, final_amount):
+                note("ghi đè câu trả lời: thiếu nháp / nói đã hoàn tất / nhắc số tiền khác SO_TIEN")
+                tra_loi_khach = _render_template(final_decision, final_amount, ma_ca, ly_do_gate)
 
     if final_decision == "CHUYEN_NV" and ma_ca not in tra_loi_khach:
         tra_loi_khach = f"{tra_loi_khach.rstrip('.!? ')} (mã ca hỗ trợ: {ma_ca})."
