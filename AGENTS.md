@@ -40,6 +40,6 @@ Khung chỉ dùng thư viện chuẩn của Python. Thêm thư viện thì ghi v
 
 ## Quy ước của nhóm
 
-- Ngôn ngữ trả lời người dùng: __
-- Phong cách code / đặt tên: __
-- Ai duyệt thay đổi do agent tạo trước khi commit: __
+- Ngôn ngữ trả lời người dùng: tiếng Việt (câu trả lời cho khách, tài liệu, commit message)
+- Phong cách code / đặt tên: chỉ thư viện chuẩn Python; hàm / biến `snake_case`; khoá dữ liệu và quyết định giữ đúng tên trong `data/policy.json` (`HUY_HOAN`, `phut_tre_so_voi_eta`…); số tiền / số phút luôn tính bằng code, không để AI tính; test trong `tests/` chạy bằng `python -m unittest discover -s tests`
+- Ai duyệt thay đổi do agent tạo trước khi commit: Vũ Nam Khánh (review PR, tự chạy `python run.py check` + test trước khi merge); file của ai thì người đó xác nhận lại (bảng chủ sở hữu trong `docs/plan.md` mục 2)

@@ -54,6 +54,6 @@
 |---|---|
 | **Dùng để làm gì** | Chỉ dùng cho **bằng chứng pain** (`evidence/`, trích mẫu `300` dòng gắn nhãn) và để Việt Anh **viết lại thành câu thử** trong `eval/benchmark.csv`. **KHÔNG dùng cho AI tra cứu lúc chạy (`runtime`), KHÔNG dùng để suy ra ngưỡng chính sách.** |
 | **Từ đâu** | Tập review công khai của các app giao đồ ăn tại Việt Nam năm 2026 (`ShopeeFood: 1.465`, `Grab: 452`, `GreenSM: 245`, `be: 169`, tổng `2.331` dòng 1–2★), lưu ngoài repo tại `docs/no_commit/` (đã chặn trong `.gitignore`). |
-| **Xử lý những bước gì** | Script `evidence/scripts/sample_reviews.py` *(thuộc CP2-5, đang ở nhánh `evidence/cp2-review-sample`, chưa merge)* lấy ngẫu nhiên `300` review (`seed=42`), bỏ cột `user_hash`, cắt còn `<= 2` câu và tự động che SĐT/email/biển số trước khi đưa vào `evidence/labels/`. |
+| **Xử lý những bước gì** | Script `evidence/scripts/sample_reviews.py` *(CP2-5, đã merge vào `main`; kiểm tái lập: `--verify`)* lấy ngẫu nhiên `300` review (`seed=42`), bỏ cột `user_hash`, cắt còn `<= 2` câu và tự động che SĐT/email/biển số trước khi đưa vào `evidence/labels/`. |
 | **Nhãn** | `dữ liệu thật đã ẩn danh`. |
 | **Giới hạn** | Chỉ gồm review `1–2★` nên thiên về người dùng đang bức xúc. Không đại diện cho tỷ lệ % đơn hàng ngoài thực tế, nên cần kiểm chéo bằng khảo sát và phỏng vấn. |

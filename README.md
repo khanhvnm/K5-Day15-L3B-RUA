@@ -84,14 +84,17 @@ Nhóm dùng stack khác (Node, Streamlit, notebook…): sửa hàm `run_app()` t
 
 | Thành phần | Thật / Giả | Ghi chú |
 |---|---|---|
-| Lời gọi AI ở quyết định trung tâm | **Thật** (bắt buộc từ CP3) | Model: ____ |
-|  |  |  |
+| Lời gọi AI ở quyết định trung tâm | **Giả ở CP2** (chế độ fake, 0 token) → **thật từ CP3** | Model: ____ *(chưa chốt — `codebase/ai.py` có sẵn nhánh OpenAI, chưa chạy thật)* |
+| Dữ liệu đơn hàng, chính sách, lịch sử khiếu nại (`data/`) | Giả (`synthetic`) | 30 đơn · 13 rule · 18 user, nhóm tự dựng — `data/DATA_CARD.md` |
+| Review Google Play 1–2★ | Thật, đã ẩn danh | Chỉ dùng làm bằng chứng pain + nguồn câu thử, **không** cho AI tra cứu; file thô không commit |
+| Hoàn tiền / voucher | Giả — chỉ phiếu đề xuất nháp | Không gọi cổng thanh toán hay hệ thống voucher nào |
+| Chuyển nhân viên (`escalate_to_human`) | Giả — bản nháp trong bộ nhớ | Không gửi tới hệ thống CSKH / ticket thật |
 
 ## Dùng AI vào việc gì
 
 2–3 dòng (bắt buộc): nhóm dùng công cụ AI nào để làm gì, người kiểm lại phần nào. Chi tiết: [docs/ai-usage.md](docs/ai-usage.md). Coding agent đọc [AGENTS.md](AGENTS.md).
 
-____
+Khánh dùng **Claude Code** (coding agent, đọc `AGENTS.md`) để review chéo các PR CP2 (data, bằng chứng, câu thử, code agent) bằng cách tự chạy lệnh / test, sửa lỗi tìm được, viết `tests/test_cp2_agent.py`, soạn §4–§5 `spec.md`, bộ câu hỏi khảo sát và phiếu chấm thử. Người kiểm: Khánh đọc và duyệt từng commit trước khi merge; mã đơn / số phút / số tiền của câu thử được tính tay lại từ `data/` (B01, B02, B12); kết quả chấm thử 5 output do Việt Anh và Khánh tự chấm trên giấy, không do AI chấm. Phần dùng AI của từng thành viên khác: tự khai ở `docs/ai-usage.md`.
 
 ## File mẫu — điền ở bước nào
 

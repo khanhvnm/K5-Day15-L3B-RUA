@@ -5,7 +5,7 @@
 
 ## 1. Dataset → xử lý
 
-3 dataset `synthetic` trong `data/` (xem `data/DATA_CARD.md`): `orders.json` (25–30 đơn giả, sinh có seed bởi `data/gen_orders.py`, phủ các ca sát ngưỡng), `policy.json` (chính sách bồi thường đề xuất của nhóm — nguồn cấm AI vượt), `complaint_history.json` (số lần khiếu nại/tháng của từng user). Không dùng dữ liệu thật cho AI tra cứu; review Google Play thật chỉ dùng cho **nguồn của câu thử** và bằng chứng pain.
+3 dataset `synthetic` trong `data/` (xem `data/DATA_CARD.md`): `orders.json` (30 đơn giả khai tay trong `data/gen_orders.py`, chạy lại ra đúng file, phủ các ca sát ngưỡng), `policy.json` (chính sách bồi thường đề xuất của nhóm — nguồn cấm AI vượt), `complaint_history.json` (số lần khiếu nại/tháng của từng user). Không dùng dữ liệu thật cho AI tra cứu; review Google Play thật chỉ dùng cho **nguồn của câu thử** và bằng chứng pain.
 
 ## 2. Bộ câu thử dựng ra sao
 

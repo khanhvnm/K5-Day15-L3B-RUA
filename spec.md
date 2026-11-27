@@ -141,8 +141,8 @@ flowchart TD
 - Ai có thể bị hại nếu AI sai, và nhóm chặn thế nào:
 
 ## §10. Phân công & changelog
-- Phân công có tên (theo chặng, chia cặp — guide "Cách chia việc"): __
-- Dùng AI vào việc gì (2–3 dòng; chi tiết `docs/ai-usage.md`):
+- Phân công có tên (theo chặng, chia cặp — guide "Cách chia việc"): **Vũ Nam Khánh** — điều phối, review sản phẩm, `spec.md`, canvas, khảo sát, nộp checkpoint · **Vũ Thành** — code agent (`tools.py`, `agent.py`), nối model, chạy lượt eval · **Phạm Duy Thành** — dữ liệu giả, lấy mẫu review + bằng chứng pain, mô phỏng chi phí · **Đỗ Việt Anh** — bộ câu thử, metric, chấm điểm, báo cáo đánh giá. Cặp review: Khánh ↔ từng người; chấm thử 5 output: Việt Anh + Khánh. (`TEAMS.md`, `docs/plan.md` mục 1)
+- Dùng AI vào việc gì (2–3 dòng; chi tiết `docs/ai-usage.md`): Khánh dùng **Claude Code** (coding agent, đọc `AGENTS.md`) để review chéo các PR CP2 (data, bằng chứng, câu thử, code agent) bằng cách tự chạy lệnh / test, sửa lỗi tìm được, viết `tests/test_cp2_agent.py`, soạn §4–§5 `spec.md`, bộ câu hỏi khảo sát và phiếu chấm thử. Người kiểm: Khánh đọc và duyệt từng commit trước khi merge; mã đơn / số phút / số tiền của câu thử được tính tay lại từ `data/` (B01, B02, B12); kết quả chấm thử 5 output do Việt Anh và Khánh tự chấm trên giấy, không do AI chấm. Phần dùng AI của từng thành viên khác: tự khai ở `docs/ai-usage.md`.
 - Nhật ký thay đổi — **mọi thay đổi sau CP2 19:30 Thứ Sáu 27/11 phải có dòng ở đây**:
 
 **CP2 → CP4** (vd thu hẹp lát cắt, hỏi thêm người dùng, lần cải tiến trước lượt 2)
