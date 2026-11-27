@@ -227,11 +227,11 @@ Thứ tự: 17:00–17:20 cả nhóm chốt policy + schema dữ liệu (mục 0
   4. Ở chế độ giả, `call_model` trả text giả → agent phải parse lỗi → rơi về `CHUYEN_NV` mà không crash.
   5. `python run.py` gõ thử 3 tin: có mã đơn, không mã đơn, "đồ ăn có gián".
 - **Checklist output:**
-  - [ ] `python run.py` đi hết luồng, không lỗi, có trace số lần gọi tool
-  - [ ] Mỗi tool có `@tool` + docstring 4 ý, khớp bảng công cụ trong `spec.md` §4
-  - [ ] `check_limit` là code thuần, có test tay 3 ca (trong / sát / vượt hạn mức)
-  - [ ] Output có dòng `[QUYET_DINH=...]` đúng định dạng
-  - [ ] Gửi Khánh 3–5 dòng "phần nào còn giả" cho `spec.md` §4
+  - [x] `python run.py` đi hết luồng, không lỗi, có trace số lần gọi tool
+  - [x] Mỗi tool có `@tool` + docstring 4 ý, khớp bảng công cụ trong `spec.md` §4
+  - [x] `check_limit` là code thuần, có test tay 3 ca (trong / sát / vượt hạn mức)
+  - [x] Output có dòng `[QUYET_DINH=...]` đúng định dạng
+  - [x] Gửi Khánh 3–5 dòng "phần nào còn giả" cho `spec.md` §4
 
 ### CP2-3 · 10 câu thử + metric + chuẩn đạt — **Việt Anh**
 - **Nhánh:** `eval/cp2-benchmark-metric`

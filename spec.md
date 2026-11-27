@@ -41,7 +41,11 @@ Data BTC cấp đã dùng (nếu có — không commit nguyên file): __
 
   | Công cụ | Input | Output | Tác động ra ngoài? |
   |---|---|---|---|
-  |  |  |  |  |
+  | `get_order` | `order_id` (chấp nhận `DH003`, `dh3`, `#DH-003`, `ĐH003`) | Dict đơn từ `data/orders.json` + `found`, `phut_tu_luc_dat`, `phut_tre_so_voi_eta` (tính bằng code từ `placed_at`/`eta`/`now`), `trang_thai_hop_le` (theo `valid_status_combos`); không có đơn → `{"found": false}` | Không (chỉ đọc) |
+  | `get_policy` | `issue_type` (`"all"` hoặc tên 1 rule) | `global_caps`, `valid_status_combos`, `rules` từ `data/policy.json`; không thấy rule → `{"found": false}` | Không (chỉ đọc) |
+  | `get_complaint_history` | `user_id` | `{"user_id", "so_lan_thang_nay"}` từ `data/complaint_history.json` | Không (chỉ đọc) |
+  | `check_limit` | `issue_type`, `amount`, `order` (từ `get_order`), `complaints_in_month`, `request_type` (`HUY_DON` / `KHIEU_NAI_TRE`) | `{"ok", "expected_decision", "max", "rule_id", "ly_do"}` — quyết định + số tiền đúng `amount_formula` (HUY_HOAN = total ≤ 300k · VOUCHER = min(30k, total)); **code thuần, không gọi AI** | Không (tính toán thuần) |
+  | `escalate_to_human` | `case_id` (mã đơn hoặc nhãn như `ATTP`), `reason` | `{"ma_ca": "CS-<tham chiếu>-<NNN>", "tham_chieu", "trang_thai": "ban_nhap_cho_duyet", "ly_do"}` | Không gửi đi đâu — chỉ thêm bản nháp vào hàng chờ `DRAFT_CASES` (bộ nhớ) + trace, chờ nhân viên duyệt |
 
 - **Mức tự động:** [ ] AI gợi ý, người quyết · [ ] AI tự làm khi chắc, chuyển người khi không · [ ] AI tự làm — lý do (sai thì ai chịu gì, sửa đắt hay rẻ):
 - **Chỗ chặn rủi ro** (rủi ro lớn nhất của lát cắt bị chặn ở đâu, bằng gì):
@@ -55,6 +59,11 @@ Data BTC cấp đã dùng (nếu có — không commit nguyên file): __
   |  |  |
 
 - Phần nào còn giả (công cụ trả dữ liệu giả, model chế độ giả…) — ghi rõ, không giả làm thật:
+  - **Dữ liệu:** cả 3 công cụ tra cứu đọc dữ liệu `synthetic` do nhóm tự dựng (30 đơn, 13 rule, 18 user — `data/DATA_CARD.md`), không nối hệ thống đơn hàng thật nào. Giờ "hiện tại" là trường `now` cố định trong từng đơn, không phải đồng hồ hệ thống.
+  - **Model:** mặc định chạy chế độ giả (`MODEL_PROVIDER` trống → `call_model` trả câu cố định, 0 token) → agent không parse được JSON → luôn ra `CHUYEN_NV`. Nhánh gọi OpenAI trong `codebase/ai.py` đã viết nhưng **chưa có lượt chạy thật nào** trong repo (chưa có `traces/`, `eval/run-N.csv`).
+  - **Hoàn tiền / voucher:** `HUY_HOAN` và `VOUCHER` chỉ là quyết định + số tiền trên dòng output, không gọi cổng thanh toán hay hệ thống voucher nào; câu trả lời cho khách ghi rõ là "phiếu đề xuất nháp chờ xác nhận".
+  - **Chuyển nhân viên:** `escalate_to_human` chỉ tạo bản nháp trong bộ nhớ của tiến trình (mất khi tắt chương trình), không gửi tới hệ thống CSKH hay ticket thật.
+  - **Bồi thường trùng:** chỉ chặn được qua `status = cancelled` (DH022); data không có lịch sử bồi thường theo đơn nên chưa kiểm được bồi thường lặp trên đơn chưa huỷ.
 
 ## §5. Chỗ khó — 4 lớp + ≥6 kịch bản + 2 tấn công *(guide 2.3)*
 
