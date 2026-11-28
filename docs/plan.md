@@ -366,7 +366,7 @@ Thứ tự: 17:00–17:20 cả nhóm chốt policy + schema dữ liệu (mục 0
   5. 09:45 freeze → nộp CP3.
 - **Checklist output:**
   - [x] `spec.md` §0–§7 đầy đủ, §2 có công thức impact ra 1 con số *(1 triệu × 1,74 × 40' ≈ 1,16 triệu giờ/tháng; số người là (tự ước tính) vì chưa có số công khai riêng giao đồ ăn; §0 ảnh chụp app: chưa kiểm)*
-  - [ ] Video 30s mở được ở tab ẩn danh
+  - [x] Video 30s mở được ở tab ẩn danh *(https://youtu.be/OZJkR0LBE2g — YouTube trả metadata không cần đăng nhập, 28/11; Khánh tự mở tab ẩn danh xác nhận)*
   - [ ] Đã nộp CP3: link summary, x/N lượt 1 + run ID, link video, phần chưa xong (khai thật)
 
 ### CP3-R · Review sản phẩm CP3 — **Khánh**
@@ -381,7 +381,7 @@ Thứ tự: 17:00–17:20 cả nhóm chốt policy + schema dữ liệu (mục 0
   - [x] 4 PR đã review và đã merge *(#19 → #21 · #20 → #21 · #22 · #17 → #23)*
   - [x] Chấm lại 5 câu lượt 1, khớp ≥4/5 *(đọc lại cả 30 output, khớp 30/30 với `grade_run.py`; 6 câu lỗi lời trả lời ghi ở `ghi_chu`)*
   - [x] Số trong `evidence/summary.md` = số script chạy ra *(`count_labels.py --check` + đếm lại `results.csv`; 6/6 nhãn ngẫu nhiên đúng)*
-  - [ ] Video 30s đã xem, là AI thật
+  - [x] Video 30s đã xem, là AI thật *(Khánh xem 28/11: AI thật, 1 ca thường + 1 ca khó)*
 
 ---
 
