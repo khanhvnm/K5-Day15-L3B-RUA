@@ -1,52 +1,52 @@
-# Mô phỏng chi phí khi dùng thật — điền ở guide bước 4.2.
+# Mô phỏng chi phí khi dùng thật cho Track D1 — FoodResolve AI (CSKH sau đặt món giao đồ ăn).
 # Ôn lại: ngày 13, ngày 1, ngày 14 · lab ngày 13, lab ngày 14.
-# Mọi số phải có nguồn (data / phỏng vấn / khảo sát / quy mô khoá có nguồn) hoặc ghi rõ "(tự ước tính)".
+# Mọi số phải có nguồn (data / phỏng vấn / khảo sát / nguồn công khai có link) hoặc ghi rõ "(tự ước tính)".
 # Chạy: python run.py simulate --try   (10 phiên, kiểm khung — làm trước CP3)
 #       python run.py simulate         (đủ số phiên dưới đây — bản nộp CP4)
-# Thay mọi dòng "(ví dụ)" bằng số và nguồn của nhóm; simulate nhắc nếu còn sót.
 
 sessions: 50        # số phiên mô phỏng — bản nộp ≥50
 seed: 42            # giữ cố định để chạy lại ra cùng chuỗi phiên
 
-users:              # số người dùng thật nếu đưa vào dùng — 3 kịch bản, ở quy mô thật của sản phẩm
-                    # track A: khoá học · track B–F: người dùng của sản phẩm / nhóm nhắm tới, nguồn công khai có link
-  low: 300
-  base: 700
-  high: 1000
-  source: "(ví dụ) track A — thay bằng số của nhóm. Cơ sở: lớp L3 hơn 700 học viên (README hackathon); thấp, cao: (tự ước tính)"
+users:              # số người dùng thật nếu đưa vào dùng — 3 kịch bản ở quy mô sản phẩm giao đồ ăn VN
+  low: 300000
+  base: 1000000
+  high: 10000000
+  source: "Chưa có số công khai về số người dùng app giao đồ ăn. Số gần nhất có nguồn: app be 'hiện là kênh tiếp cận hơn 10 triệu người dùng' — tính cho CẢ app be (gọi xe + giao đồ ăn + dịch vụ khác), không riêng beFood (CafeBiz đăng 20/05/2025, https://cafebiz.vn/be-group-tang-toc-nguoi-dung-tang-50-gmv-tang-60-pha-hoi-nong-vao-grab-va-xanh-sm-176250520162320667.chn · xem 28/11/2026). high = 10.000.000 (cận trên: toàn bộ người dùng app be); base = 1.000.000 = 10% con số đó, khớp spec.md §2 (tự ước tính); low = 300.000 thí điểm (tự ước tính)."
 
-personas:           # ≥3 kiểu người dùng; share cộng lại = 1
-  - name: dung_it
-    share: 0.5              # tỉ lệ người dùng kiểu này
-    uses_per_month: 4       # số phiên / người / tháng
-    turns_per_session: 1    # số lượt hỏi trong một phiên
-    source: "(ví dụ) phỏng vấn P1, P3 — thay bằng nguồn của nhóm"
-  - name: dung_vua
-    share: 0.3
-    uses_per_month: 10
-    turns_per_session: 3
-    source: "(ví dụ) khảo sát n = 24, câu 3"
-  - name: dung_nhieu
-    share: 0.2
-    uses_per_month: 20
-    turns_per_session: 5
-    source: "(ví dụ) data/preclass: đếm số lượt / người — cách đếm ở evidence/data-mining.md"
-# Mỗi lượt hỏi lấy ngẫu nhiên một đầu vào trong eval/benchmark.csv (type thuong và kho).
-# Persona hỏi kiểu riêng: thêm vào persona đó
-#     types: [thuong, kho, tu_choi]
-# hoặc
-#     inputs: ["câu hỏi kiểu 1", "câu hỏi kiểu 2"]
+personas:           # 3 nhóm khách hàng theo tần suất đơn trễ/tháng từ khảo sát (evidence/survey/results.csv, câu 6, n = 23)
+  - name: dung_it_tre_it
+    share: 0.48             # 11/23 người khảo sát (3 người 0 lần + 8 người 1 lần trễ >=15'/tháng)
+    uses_per_month: 0.73    # trung điểm câu 6: (3 người × 0 + 8 người × 1) / 11 người — khảo sát n = 23
+    turns_per_session: 2    # số lượt hỏi trong một phiên (tự ước tính)
+    types: [thuong, kho]
+    source: "Khảo sát CP2-5 evidence/survey/results.csv câu 6 (n = 23 người đặt đồ ăn — 11/23 người gặp 0–1 lần trễ >=15'/tháng); turns_per_session: (tự ước tính)"
+  - name: dung_vua_tre_vua
+    share: 0.48             # 11/23 người khảo sát gặp 2–3 lần trễ >=15'/tháng
+    uses_per_month: 2.5     # trung điểm khoảng 2–3 lần/tháng ở câu 6 khảo sát n = 23
+    turns_per_session: 3    # tương ứng mức 5–15 phút liên hệ giải quyết phổ biến ở câu 12 khảo sát (tự ước tính)
+    types: [thuong, kho]
+    source: "Khảo sát CP2-5 evidence/survey/results.csv câu 6 (n = 23 — 11/23 người gặp 2–3 lần trễ >=15'/tháng) & câu 12 (mức liên hệ 5–15 phút); turns_per_session: (tự ước tính)"
+  - name: dung_nhieu_khieu_nai_cao
+    share: 0.04             # 1/23 người khảo sát gặp 4–5 lần trễ >=15'/tháng (còn lại)
+    uses_per_month: 4.5     # trung điểm khoảng 4–5 lần/tháng ở câu 6 khảo sát n = 23
+    turns_per_session: 4    # nhóm khiếu nại nhiều lần / cần chuyển nhân viên hoặc ca từ chối (tự ước tính)
+    types: [kho, tu_choi]
+    source: "Khảo sát CP2-5 evidence/survey/results.csv câu 6 (n = 23 — 1/23 người gặp 4–5 lần trễ >=15'/tháng); turns_per_session: (tự ước tính)"
 
-prices:             # USD / 1 triệu token — chép từ further-reading/model-prices.md của repo đề. ≥2 mức model
+prices:             # USD / 1 triệu token — đối chiếu giá chính thức ngày 27–28/11/2026 (gồm model đang nối + mức đối chiếu Nhỏ/Lớn)
   - model: gpt-4o-mini
-    input: 0.15             # $/1M input tokens (cached input: $0.075/1M — simulate.py chỉ tính theo input/output)
-    output: 0.60            # $/1M output tokens
-    source: "https://openai.com/api/pricing/ (cached input: $0.075/1M) · xem 27/11/2026"
-  - model: gpt-6-luna
-    input: 0.10             # $/1M input tokens (cached input: $0.01/1M — simulate.py chỉ tính theo input/output)
-    output: 0.50            # $/1M output tokens
-    source: "https://openai.com/api/pricing/ (cached input: $0.01/1M) · xem 27/11/2026"
+    input: 0.15
+    output: 0.60
+    source: "https://openai.com/api/pricing/ (OpenAI Standard — model Vũ Thành nối ở CP3-1, cached input $0.075/1M; xem 28/11/2026)"
+  - model: gpt-4o
+    input: 2.50
+    output: 10.00
+    source: "https://openai.com/api/pricing/ (OpenAI Standard — mức model lớn đối chiếu, cached input $1.25/1M; xem 28/11/2026)"
+  - model: gemini-2.5-flash-lite
+    input: 0.10
+    output: 0.40
+    source: "https://ai.google.dev/gemini-api/docs/pricing (Google AI Paid Tier Standard — mức tiết kiệm tham chiếu thêm; xem 27/11/2026)"
 
-usd_to_vnd:         # tuỳ chọn: điền thì bản tóm tắt in thêm tiền Việt
-  rate:
-  source:
+usd_to_vnd:
+  rate: 26010
+  source: "Vietcombank niêm yết chiều bán ra ngày 27/11/2026 (https://www.vietcombank.com.vn)"

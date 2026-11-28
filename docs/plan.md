@@ -414,9 +414,9 @@ Thứ tự: 17:00–17:20 cả nhóm chốt policy + schema dữ liệu (mục 0
   3. `python run.py simulate --rate-from eval/run-2.csv` (≥50 phiên, seed cố định).
   4. `cost/cost-estimate.md`: chi phí / task thành công · 3 kịch bản · so **chi phí / người / tháng** với **impact / người / tháng** (§2) → 1 dòng kết luận đáng làm không.
 - **Checklist output:**
-  - [ ] `cost/simulate-N.csv` + `cost/simulate-N-summary.md` đã commit
-  - [ ] `cost/cost-estimate.md` 3 kịch bản, ≥2 model, có kết luận
-  - [ ] `spec.md` §8 gửi Khánh (hoặc PR riêng sửa đúng §8)
+  - [x] `cost/simulate-N.csv` + `cost/simulate-N-summary.md` đã commit *(`simulate-1`, 50 phiên, `--rate-from eval/run-2.csv`; cả nhóm chạy trên máy Khánh)*
+  - [x] `cost/cost-estimate.md` 3 kịch bản, ≥2 model, có kết luận *(3 model; ≈ 40 ₫ / người / tháng với `gpt-4o-mini`)*
+  - [x] `spec.md` §8 gửi Khánh (hoặc PR riêng sửa đúng §8) *(cùng PR `cost/cp4-simulate`)*
 
 ### CP4-4 · Slide + video dự phòng + nộp — **Khánh** (chủ) + mỗi người 1–2 trang
 - **Nhánh:** `docs/cp4-slides`
@@ -518,7 +518,7 @@ Thứ tự: 17:00–17:20 cả nhóm chốt policy + schema dữ liệu (mục 0
 | 09:30 T7 | PR #17 · `evidence/summary.md` §6 | Trích sai nguồn: bài VnExpress **không** có "2,1 tỷ USD" hay "48%/48%" (thật: NielsenIQ 56%/36% theo số đơn, Statista ~2,8 tỷ USD 2025); "hơn 10 triệu" của Be là người dùng cả app, không riêng beFood → sửa nguyên văn + ngày đăng; ghi rõ chưa có số người dùng giao đồ ăn | Duy Thành xác nhận | trước CP3-5 | ☑ |
 | 09:30 T7 | PR #17 · `evidence/summary.md` §2, §4 | Bỏ sót số: chưa có tài xế 4/20 (gồm ca trời mưa) chứ không phải 3/20; thiếu `< 5'` 2/20 và 2 kết quả ghi tay → bổ sung | Duy Thành xác nhận | trước CP3-5 | ☑ |
 | 09:30 T7 | PR #17 · `summary.md` §5, `data-mining.md` §5 | Chưa ghi: `khong_huy_duoc` gồm ~13–17 ca "đặt nhầm" (không phải đơn kẹt) → D1 bảo thủ ~42–43%, vẫn ≥40%; `part2` cũng có AI gợi ý nhãn (150/300) · `count_labels.py` in sai "giữa Duy Thành và Khánh" | Duy Thành xác nhận | trước CP3-5 | ☑ |
-| 09:30 T7 | `cost/personas.yaml` | `simulate --try` chưa chạy được trên `main`; nhánh cost xung đột | Duy Thành | CP4-3 | ☐ |
+| 09:30 T7 | `cost/personas.yaml` | `simulate --try` chưa chạy được trên `main`; nhánh cost xung đột | Duy Thành | CP4-3 | ☑ lấy personas từ nhánh cost đặt lên `main` mới, sửa `users` (bỏ số trích sai) + trung điểm khảo sát — Duy Thành xác nhận |
 | 23:25 | `evidence/labels/overlap_30_thanh.csv` | Khớp `30/30`, trùng cả `ghi_chu` 26/30, commit sau `part1` → xác nhận gắn mù; `part1` do AI gợi ý nên độ khớp là người ↔ AI | Duy Thành | CP3 10:00 T7 | ☑ Duy Thành xác nhận gắn mù |
 | 23:25 | `evidence/survey/` | `questions.md` lệch form thật; form thu email; 1 email gửi 2 lần; chưa có `results.csv` → chép bộ câu thật, viết `anonymize_survey.py`, sinh `results.csv` (25 dòng) | Khánh | CP3 10:00 T7 | ☑ |
 | 23:25 | `evidence/survey/` | Không loại được người trong nhóm (câu "Bạn là" không có lựa chọn này) → 4 người tự xác nhận không điền form | Cả nhóm | CP3 10:00 T7 | ☑ cả 4 người xác nhận |
