@@ -4,6 +4,9 @@ Chạy từ thư mục gốc repo:
     python codebase/web_demo.py
 Mở trình duyệt tại:
     http://127.0.0.1:8000
+
+Lưu ý giới hạn bản demo: trạng thái bồi thường trùng theo phiên (SESSION_COMPENSATIONS) và
+hàng chờ bản nháp (DRAFT_CASES) lưu in-memory trong tiến trình, sẽ mất khi khởi động lại server.
 """
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
@@ -26,7 +29,6 @@ HEADER_RE = re.compile(
     re.DOTALL,
 )
 
-# Giá tham khảo gpt-4o-mini (USD / 1M tokens) để hiện ước tính ngay trên Inspector
 PRICE_IN_PER_1M = 0.15
 PRICE_OUT_PER_1M = 0.60
 
@@ -116,6 +118,8 @@ class DemoHandler(BaseHTTPRequestHandler):
                     "model_provider": ai.MODEL_PROVIDER,
                     "model_name": ai.MODEL_NAME or "fake",
                     "draft_cases_count": len(tools.DRAFT_CASES),
+                    "active_sessions_count": len(tools.SESSION_COMPENSATIONS),
+                    "state_persistence": "in_memory_only",
                 },
             )
             return
@@ -145,14 +149,14 @@ class DemoHandler(BaseHTTPRequestHandler):
                 self._send_json(400, {"error": "Thiếu nội dung tin nhắn"})
                 return
 
-            # Hỗ trợ Mid-Flow Correction ở tầng demo: ghép ngữ cảnh cũ nếu lượt trước bị HOI_LAI
+            session_id = str(data.get("session_id") or "").strip() or None
             pending_context = str(data.get("pending_context") or "").strip()
             effective_text = f"{pending_context} {text}".strip() if pending_context else text
 
             t0 = time.perf_counter()
             tracing.begin("web_demo")
             try:
-                res = agent.answer(effective_text)
+                res = agent.answer(effective_text, session_id=session_id)
                 summary, events = tracing.end()
             except Exception as e:
                 tracing.end()
@@ -163,7 +167,6 @@ class DemoHandler(BaseHTTPRequestHandler):
             raw_output = res.get("output", "") if isinstance(res, dict) else str(res)
             parsed = _parse_agent_output(raw_output)
 
-            # Lấy ảnh chụp đơn hàng phục vụ panel Inspector (không tính thêm vào trace)
             extracted_id = agent._extract_order_id(effective_text)
             order_snapshot = None
             if extracted_id:
@@ -182,6 +185,7 @@ class DemoHandler(BaseHTTPRequestHandler):
                 200,
                 {
                     "effective_input": effective_text,
+                    "session_id": session_id,
                     "raw_output": raw_output,
                     "parsed": parsed,
                     "order_snapshot": order_snapshot,
@@ -192,6 +196,20 @@ class DemoHandler(BaseHTTPRequestHandler):
                     "est_cost_usd": round(est_cost_usd, 6),
                     "model_provider": ai.MODEL_PROVIDER,
                     "draft_cases_count": len(tools.DRAFT_CASES),
+                },
+            )
+            return
+
+        if self.path == "/api/reset-session":
+            session_id = str(data.get("session_id") or "").strip()
+            if session_id:
+                tools.reset_session_compensations(session_id)
+            self._send_json(
+                200,
+                {
+                    "ok": True,
+                    "cleared_session_id": session_id or None,
+                    "active_sessions_count": len(tools.SESSION_COMPENSATIONS),
                 },
             )
             return
@@ -214,6 +232,7 @@ def main():
     server = ThreadingHTTPServer(("127.0.0.1", port), DemoHandler)
     print(f"FoodResolve Demo đang chạy tại: http://127.0.0.1:{port}")
     print(f"Model hiện tại: MODEL_PROVIDER={ai.MODEL_PROVIDER} | MODEL_NAME={ai.MODEL_NAME or 'fake'}")
+    print("Lưu ý: trạng thái phiên (bồi thường trùng & nháp ca) lưu in-memory, mất khi dừng server.")
     print("Nhấn Ctrl+C để dừng.")
     try:
         server.serve_forever()

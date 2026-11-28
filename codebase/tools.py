@@ -34,7 +34,7 @@ _PII_FIELDS = {
 # Cache đọc file theo mtime để tránh đọc lại JSON nhiều lần trong cùng 1 lượt xử lý
 _DATA_CACHE: dict = {}
 
-# Theo dõi bồi thường trùng trong cùng một phiên (opt-in theo session_id cho demo nhiều lượt)
+# Theo dõi bồi thường trùng trong cùng một phiên (in-memory, mất khi tiến trình dừng; opt-in theo session_id)
 SESSION_COMPENSATIONS: dict = {}
 
 
@@ -286,7 +286,7 @@ def check_limit(
                 "TU_CHOI",
                 0,
                 "unassigned_too_early",
-                f"Đơn mới chờ {phut_tu_luc_dat} phút, chưa vượt ngưỡng {unassigned_cancel_min} phút để tự động hủy hoàn.",
+                f"Đơn mới chờ {phut_tu_luc_dat} phút, chưa vượt ngưỡng {unassigned_cancel_min} phút (phải chờ hơn {unassigned_cancel_min} phút) để tự động hủy hoàn.",
             )
         if total > max_auto_refund:
             return _finish(
@@ -317,32 +317,47 @@ def check_limit(
             "duplicate_compensation",
             f"Đơn {oid} đã có phiếu đề xuất voucher giao trễ trong phiên này, không áp dụng bồi thường trùng.",
         )
+    # Theo DATA_CARD.md: orders.json không có giờ giao thực tế (delivered_at) cho đơn delivered;
+    # phut_tre_so_voi_eta = now - eta tính tại thời điểm ghi nhận.
+    is_delivered = status == "delivered"
     if phut_tre_so_voi_eta <= 0:
         detail = (
-            f"còn/sớm hơn {abs(phut_tre_so_voi_eta)} phút"
+            f"còn sớm hơn {abs(phut_tre_so_voi_eta)} phút so với giờ dự kiến (ETA)"
             if phut_tre_so_voi_eta < 0
-            else "đúng giờ dự kiến"
+            else "đúng giờ dự kiến (ETA)"
         )
-        return _finish(
-            "TU_CHOI",
-            0,
-            "late_delivery_under_threshold",
-            f"Đơn hàng hiện chưa quá giờ dự kiến ({detail}), chưa áp dụng voucher giao trễ.",
-        )
+        if is_delivered:
+            ly_do = (
+                f"Đơn ở trạng thái đã giao; tại thời điểm ghi nhận, {detail} "
+                f"(chưa vượt ngưỡng {late_min} phút để cấp voucher; dữ liệu không lưu giờ giao thực tế)."
+            )
+        else:
+            ly_do = (
+                f"Đơn hàng hiện chưa quá giờ dự kiến ({detail}), "
+                f"chưa vượt ngưỡng {late_min} phút để áp dụng voucher giao trễ."
+            )
+        return _finish("TU_CHOI", 0, "late_delivery_under_threshold", ly_do)
     if phut_tre_so_voi_eta <= late_min:
-        return _finish(
-            "TU_CHOI",
-            0,
-            "late_delivery_under_threshold",
-            f"Đơn chỉ trễ {phut_tre_so_voi_eta} phút so với giờ dự kiến, chưa vượt ngưỡng {late_min} phút để cấp voucher.",
-        )
+        if is_delivered:
+            ly_do = (
+                f"Đơn ở trạng thái đã giao; tại thời điểm ghi nhận, đã qua ETA {phut_tre_so_voi_eta} phút, "
+                f"chưa vượt ngưỡng {late_min} phút (phải quá {late_min} phút) để cấp voucher; dữ liệu không lưu giờ giao thực tế."
+            )
+        else:
+            ly_do = (
+                f"Đơn chỉ trễ {phut_tre_so_voi_eta} phút so với giờ dự kiến, "
+                f"chưa vượt ngưỡng {late_min} phút (phải trễ hơn {late_min} phút) để cấp voucher."
+            )
+        return _finish("TU_CHOI", 0, "late_delivery_under_threshold", ly_do)
     if phut_tre_so_voi_eta > heavy_delay_min:
-        return _finish(
-            "CHUYEN_NV",
-            0,
-            "heavy_delay_escalate",
-            f"Đơn trễ {phut_tre_so_voi_eta} phút (> {heavy_delay_min} phút — trễ nặng), cần nhân viên xử lý trực tiếp.",
-        )
+        if is_delivered:
+            ly_do = (
+                f"Đơn ở trạng thái đã giao; tại thời điểm ghi nhận, đã qua ETA {phut_tre_so_voi_eta} phút "
+                f"(> {heavy_delay_min} phút), cần nhân viên xử lý trực tiếp."
+            )
+        else:
+            ly_do = f"Đơn trễ {phut_tre_so_voi_eta} phút (> {heavy_delay_min} phút — trễ nặng), cần nhân viên xử lý trực tiếp."
+        return _finish("CHUYEN_NV", 0, "heavy_delay_escalate", ly_do)
     if complaints >= complaints_threshold:
         return _finish(
             "CHUYEN_NV",
@@ -351,12 +366,17 @@ def check_limit(
             f"Tài khoản đã khiếu nại {complaints} lần trong tháng (≥ ngưỡng {complaints_threshold}), cần nhân viên xét duyệt.",
         )
     voucher_cap = min(max_auto_voucher, total)
-    return _finish(
-        "VOUCHER",
-        voucher_cap,
-        "late_delivery_voucher",
-        f"Đơn giao trễ {phut_tre_so_voi_eta} phút (trong khoảng {late_min}–{heavy_delay_min} phút), đủ điều kiện voucher tối đa {voucher_cap}đ.",
-    )
+    if is_delivered:
+        ly_do = (
+            f"Đơn ở trạng thái đã giao; tại thời điểm ghi nhận, đã qua ETA {phut_tre_so_voi_eta} phút "
+            f"(trong khoảng {late_min}–{heavy_delay_min} phút), đủ điều kiện voucher tối đa {voucher_cap}đ."
+        )
+    else:
+        ly_do = (
+            f"Đơn giao trễ {phut_tre_so_voi_eta} phút (trong khoảng {late_min}–{heavy_delay_min} phút), "
+            f"đủ điều kiện voucher tối đa {voucher_cap}đ."
+        )
+    return _finish("VOUCHER", voucher_cap, "late_delivery_voucher", ly_do)
 
 
 # Hàng chờ bản nháp chuyển nhân viên (chỉ trong bộ nhớ của tiến trình; mỗi bản nháp cũng nằm trong trace)
