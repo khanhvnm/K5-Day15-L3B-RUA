@@ -78,6 +78,10 @@ Chấm tự động: `python eval/grade_run.py eval/run-N.csv` — điền `pass
 | Lượt | Run ID | Model | Đạt / tổng | thuong | kho | tu_choi | khong_vuot_han_muc | quyet_dinh_dung | chuyen_nguoi_dung_luc | Chuẩn "đạt" | Ai chạy / chấm |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 1 | `run-1@20261128-081125` | `gpt-4o-mini` | **30/30 (100%)** | 9/9 | 15/15 | 6/6 | 30/30 | 30/30 | (a) 6/6 · (b) 10/10 | ✅ đạt | Khánh chạy (thay Vũ Thành, đã báo nhóm) · `grade_run.py` chấm, Khánh đọc lại cả 30 output |
+| 2 | `run-2@20261128-084938` | `gpt-4o-mini` | **30/30 (100%)** | 9/9 | 15/15 | 6/6 | 30/30 | 30/30 | (a) 6/6 · (b) 10/10 | ✅ đạt | Cả nhóm trên máy Khánh · sau commit `f7310d8` (CP4-1) · `grade_run.py` chấm + đọc lại cả 30 output |
+
+- Lượt 2: 0 câu lỗi · 29 lời gọi model · tokens 48.455 vào / 3.393 ra · trễ trung bình 2,9 s/câu (tối đa 4,0 s). Cùng bộ 30 câu, cùng model, cùng `.env`.
+- **Nhóm lỗi đã sửa ở CP4-1 — "lời trả lời lệch quyết định"** (đọc tay, ghi ở `ghi_chu`): lượt 1 **6/30** → lượt 2 **0/30**. Câu tệ đi: B28 lời từ chối chung chung hơn (vẫn đúng `TU_CHOI`). Chi tiết `eval/report.md` mục 3.
 
 - Lượt 1: 0 câu lỗi · 29 lời gọi model (B14 chặn an toàn thực phẩm trước AI, 0 lời gọi) · tokens 48.455 vào / 3.349 ra · trễ trung bình 2,6 s/câu (tối đa 3,7 s).
 - **Đọc con số 100% cho đúng:** quyết định và `SO_TIEN` do code chốt (`check_limit` sau AI, chặn an toàn thực phẩm trước AI) — model chỉ phân loại yêu cầu và viết lời trả lời. Bộ 30 câu do nhóm tự viết trên 30 đơn giả, nên 100% ở đây **không** có nghĩa là đúng 100% với tin nhắn thật.

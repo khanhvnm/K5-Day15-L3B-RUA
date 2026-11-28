@@ -175,7 +175,7 @@ flowchart TD
 ## §7. Đánh giá & chuẩn "đạt" *(guide 2.4, 4.1)*
 - Data card: `data/DATA_CARD.md` · bộ câu thử: `eval/benchmark.csv` — 30 câu (thuong 9 · kho 15 · tu_choi 6; từ data thật 11/30) · metric: `eval/metric_spec.yaml` (3 metric: `khong_vuot_han_muc` 100% · `quyet_dinh_dung` ≥ 80% · `chuyen_nguoi_dung_luc` 100% câu tu_choi + ≥ 90% câu CHUYEN_NV)
 - **Chuẩn "đạt"** (chốt **trước 19:30 Thứ Sáu 27/11**, giữ nguyên đến 23:59 Thứ Bảy 28/11): "Đạt khi ≥ 80% câu qua, **và** 100% câu không vượt hạn mức, **và** 100% câu `tu_choi` qua."
-- Kết quả: lượt 1 **30/30 (100%)** — ✅ đạt chuẩn (100% không vượt hạn mức · 6/6 `tu_choi`) · lượt 2 __/__ (__%) — run ID: `run-1@20261128-081125` (`gpt-4o-mini`) / __ → chi tiết `eval/report.md`, hồ sơ `eval/README.md` mục 5. Quyết định + số tiền do code chốt; lỗi còn lại nằm ở lời trả lời khách (6/30 câu thiếu "phiếu nháp" / thiếu lý do — `eval/report.md` mục 2)
+- Kết quả: lượt 1 **30/30 (100%)** — ✅ đạt chuẩn (100% không vượt hạn mức · 6/6 `tu_choi`) · lượt 2 **30/30 (100%)** — ✅ đạt — run ID: `run-1@20261128-081125` / `run-2@20261128-084938` (cùng `gpt-4o-mini`) → chi tiết `eval/report.md`, hồ sơ `eval/README.md` mục 5. Quyết định + số tiền do code chốt nên 3 metric đã đạt ngay từ lượt 1. Cải tiến CP4-1 nhắm vào lời trả lời khách: nhóm lỗi "lời trả lời lệch quyết định" (thiếu "phiếu nháp" / thiếu lý do / bảo khách tự liên hệ) giảm từ **6/30 → 0/30** (đọc tay, `eval/report.md` mục 3)
 
 ## §8. Chi phí khi dùng thật *(guide 4.2)*
 - Persona + giá: `cost/personas.yaml` · lượt mô phỏng: `cost/simulate-__.csv` (__ phiên)
@@ -203,6 +203,7 @@ flowchart TD
 | T7 08:22 28/11 (PR #22, chạy 08:11) | Lượt 1 `run-1@20261128-081125` → 30/30 (100%) | Lần chạy đầu với model thật, không sửa gì giữa lúc chạy và lúc chấm (`eval/report.md`) |
 | T7 08:28 28/11 (PR #17, #23) | Bằng chứng CP3: 300/300 nhãn, khảo sát n = 23; sửa nguồn trích sai về quy mô thị trường; thêm giới hạn "đặt nhầm" và 150/300 nhãn có AI gợi ý | Review CP3-4 đối chiếu lại nguyên văn 2 bài báo (`evidence/summary.md` §5–§6) |
 | T7 sáng 28/11 (nhánh `docs/cp3-spec-impact`) | Điền §0, §2 (impact), §3, §6; cập nhật §1 (số CP3), §4 (model thật, 25 test), §5 (+B23, B28) | Yêu cầu CP3 §0–§7 |
+| T7 08:45 28/11 (commit `f7310d8`, **cải tiến trước lượt 2**) | `HUY_HOAN` / `VOUCHER` / `CHUYEN_NV` (kể cả ngoài phạm vi): lời trả lời luôn là câu mẫu của code + `ly_do` của `check_limit`; `TU_CHOI` do model viết nhưng bị thay nếu nói "đã hoàn" hoặc nhắc số tiền | Nhóm lỗi lượt 1 "lời trả lời lệch quyết định" 6/30: B04, B10, B18 thiếu "phiếu nháp"; B20, B23 không nêu lý do; B29 bảo khách tự liên hệ (`eval/run-1.csv` cột `ghi_chu`). Lượt 2 `run-2@20261128-084938`: 0/30; B28 tệ đi nhẹ (`eval/report.md` mục 3) |
 
 **Sau CP4 (đến 23:59 Thứ Bảy 28/11)** (sửa theo góp ý — không sửa chuẩn "đạt", câu thử, số bằng chứng, kết quả các lượt đã chạy)
 
