@@ -338,9 +338,9 @@ Thứ tự: 17:00–17:20 cả nhóm chốt policy + schema dữ liệu (mục 0
 - **Nhánh:** `run/cp3-run1`
 - **Hướng dẫn:** sau khi CP3-1 và CP3-2 đã merge: `python run.py eval` → `eval/run-1.csv` + `traces/run-1.jsonl` → commit ngay → Việt Anh chạy `grade_run.py` + chấm tay ô trống → `python run.py score eval/run-1.csv` → ghi % và run ID vào `eval/README.md` mục 5 + `spec.md` §7.
 - **Checklist output:**
-  - [ ] `eval/run-1.csv` + `traces/run-1.jsonl` đã commit, model ≠ fake
-  - [ ] Cột `pass` đủ, `score` in ra %
-  - [ ] Lượt 1 thấp là bình thường — **không** sửa gì để làm đẹp số
+  - [x] `eval/run-1.csv` + `traces/run-1.jsonl` đã commit, model ≠ fake *(`run-1@20261128-081125`, `gpt-4o-mini`; Khánh chạy thay Vũ Thành)*
+  - [x] Cột `pass` đủ, `score` in ra % *(30/30 — 100%; 6 câu có `ghi_chu` lỗi lời trả lời)*
+  - [x] Lượt 1 thấp là bình thường — **không** sửa gì để làm đẹp số *(không sửa code / câu thử giữa lúc chạy và lúc chấm)*
 
 ### CP3-4 · Bằng chứng đủ ngưỡng — **Duy Thành** (chủ) + cả nhóm
 - **Nhánh:** `evidence/cp3-summary`

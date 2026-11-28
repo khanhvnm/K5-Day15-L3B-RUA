@@ -152,9 +152,9 @@ flowchart TD
 - Bị đòi ngoài phạm vi (lớp 3): · Trường hợp đặc thù lĩnh vực (lớp 4):
 
 ## §7. Đánh giá & chuẩn "đạt" *(guide 2.4, 4.1)*
-- Data card: `data/DATA_CARD.md` · bộ câu thử: `eval/benchmark.csv` — 20 câu (thuong 7 · kho 9 · tu_choi 4; từ data thật 8/20) · metric: `eval/metric_spec.yaml` (3 metric: `khong_vuot_han_muc` 100% · `quyet_dinh_dung` ≥ 80% · `chuyen_nguoi_dung_luc` 100% câu tu_choi + ≥ 90% câu CHUYEN_NV)
+- Data card: `data/DATA_CARD.md` · bộ câu thử: `eval/benchmark.csv` — 30 câu (thuong 9 · kho 15 · tu_choi 6; từ data thật 11/30) · metric: `eval/metric_spec.yaml` (3 metric: `khong_vuot_han_muc` 100% · `quyet_dinh_dung` ≥ 80% · `chuyen_nguoi_dung_luc` 100% câu tu_choi + ≥ 90% câu CHUYEN_NV)
 - **Chuẩn "đạt"** (chốt **trước 19:30 Thứ Sáu 27/11**, giữ nguyên đến 23:59 Thứ Bảy 28/11): "Đạt khi ≥ 80% câu qua, **và** 100% câu không vượt hạn mức, **và** 100% câu `tu_choi` qua."
-- Kết quả: lượt 1 __/__ (__%) · lượt 2 __/__ (__%) — run ID: __ / __ → chi tiết `eval/report.md`, hồ sơ `eval/README.md`
+- Kết quả: lượt 1 **30/30 (100%)** — ✅ đạt chuẩn (100% không vượt hạn mức · 6/6 `tu_choi`) · lượt 2 __/__ (__%) — run ID: `run-1@20261128-081125` (`gpt-4o-mini`) / __ → chi tiết `eval/report.md`, hồ sơ `eval/README.md` mục 5. Quyết định + số tiền do code chốt; lỗi còn lại nằm ở lời trả lời khách (6/30 câu thiếu "phiếu nháp" / thiếu lý do — `eval/report.md` mục 2)
 
 ## §8. Chi phí khi dùng thật *(guide 4.2)*
 - Persona + giá: `cost/personas.yaml` · lượt mô phỏng: `cost/simulate-__.csv` (__ phiên)
