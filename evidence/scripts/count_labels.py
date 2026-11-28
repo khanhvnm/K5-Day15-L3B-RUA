@@ -399,7 +399,7 @@ def render_markdown(summary: dict) -> str:
                 f"`{hyp_cnt}/{n_total}` (`{hyp_pct:.1f}%`) — ngưỡng giả thuyết `>= 40%`."
             ),
             (
-                f"- Độ khớp gắn nhãn chéo (`{ov_total}` dòng chung giữa Duy Thành và Khánh): "
+                f"- Độ khớp gắn nhãn chéo (`{ov_total}` dòng chung: Duy Thành ↔ part1 do AI gợi ý, Khánh duyệt): "
                 f"`{iaa_m}/{ov_total}` (`{iaa_pct:.1f}%` trên {iaa_p} cặp đã gắn đủ)."
             ),
         ]

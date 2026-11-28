@@ -351,10 +351,10 @@ Thứ tự: 17:00–17:20 cả nhóm chốt policy + schema dữ liệu (mục 0
   4. `evidence/summary.md`: số chính · **≥5 trích dẫn nguyên văn** (≤2 câu, ghi app + ngày + review_id) · so sánh nguồn 1 (review) với nguồn 2 (khảo sát/phỏng vấn) · kết luận giả thuyết đúng/sai/phải đổi · giới hạn (review 1★ nghiêng về người đang bực).
   5. `cost/personas.yaml` bản thử (số lần/tháng lấy từ khảo sát) → `python run.py simulate --try`.
 - **Checklist output:**
-  - [ ] `evidence/data-mining.md` có x/N, %, script tái chạy được
-  - [ ] `evidence/survey/results.csv` ≥20 dòng đã ẩn danh **hoặc** ≥3 phỏng vấn
-  - [ ] `evidence/summary.md` ≥5 trích dẫn + kết luận
-  - [ ] `simulate --try` chạy được 10 phiên
+  - [x] `evidence/data-mining.md` có x/N, %, script tái chạy được *(`count_labels.py --check` sạch, số khớp `summary.md`)*
+  - [x] `evidence/survey/results.csv` ≥20 dòng đã ẩn danh **hoặc** ≥3 phỏng vấn *(25 dòng, n = 23 có đặt đồ ăn, không cột nhận dạng; phỏng vấn 0)*
+  - [x] `evidence/summary.md` ≥5 trích dẫn + kết luận *(5 review + 3 khảo sát)*
+  - [ ] `simulate --try` chạy được 10 phiên *(chưa: `personas.yaml` trên `main` vẫn là bản "(ví dụ)"; nhánh `cost/cp3-personas-draft` tách từ `main` cũ, xung đột `personas.yaml` → Duy Thành rebase lên `main` ở CP4-3)*
 
 ### CP3-5 · Impact, spec §0–§7, video, nộp — **Khánh**
 - **Nhánh:** `docs/cp3-spec-impact`
@@ -515,6 +515,10 @@ Thứ tự: 17:00–17:20 cả nhóm chốt policy + schema dữ liệu (mục 0
 | 09:00 T7 | PR #19 · `cost/personas.yaml` | Sửa file của Duy Thành, trùng khối `prices` với nhánh `cost/cp3-personas-draft`; `gpt-6-luna` rẻ hơn `gpt-4o-mini` nên không phải mức model thứ 2 → Duy Thành chốt 1 bản ở CP4-3 | Duy Thành | CP4 | ☐ |
 | 09:00 T7 | PR #20 · `eval/grade_run.py` | Regex không nhận `MA_CA=-` → mọi câu khác CHUYEN_NV bị đẩy sang chấm tay; chạy lại xoá điểm chấm tay; `dh014` viết thường không tra được trần; thiếu in 3 metric → sửa + 4 test | Việt Anh xác nhận | trước CP3-3 | ☑ |
 | 09:00 T7 | PR #20 · `eval/benchmark.csv`, `eval/README.md` | B25 `pass_criterion` ghi DH026 "sớm 5'" (thật: trễ 5', `expected` vẫn đúng); README mục 2 còn số 20 câu, chưa có lưới B21–B30 | Việt Anh xác nhận | trước CP3-3 | ☑ |
+| 09:30 T7 | PR #17 · `evidence/summary.md` §6 | Trích sai nguồn: bài VnExpress **không** có "2,1 tỷ USD" hay "48%/48%" (thật: NielsenIQ 56%/36% theo số đơn, Statista ~2,8 tỷ USD 2025); "hơn 10 triệu" của Be là người dùng cả app, không riêng beFood → sửa nguyên văn + ngày đăng; ghi rõ chưa có số người dùng giao đồ ăn | Duy Thành xác nhận | trước CP3-5 | ☑ |
+| 09:30 T7 | PR #17 · `evidence/summary.md` §2, §4 | Bỏ sót số: chưa có tài xế 4/20 (gồm ca trời mưa) chứ không phải 3/20; thiếu `< 5'` 2/20 và 2 kết quả ghi tay → bổ sung | Duy Thành xác nhận | trước CP3-5 | ☑ |
+| 09:30 T7 | PR #17 · `summary.md` §5, `data-mining.md` §5 | Chưa ghi: `khong_huy_duoc` gồm ~13–17 ca "đặt nhầm" (không phải đơn kẹt) → D1 bảo thủ ~42–43%, vẫn ≥40%; `part2` cũng có AI gợi ý nhãn (150/300) · `count_labels.py` in sai "giữa Duy Thành và Khánh" | Duy Thành xác nhận | trước CP3-5 | ☑ |
+| 09:30 T7 | `cost/personas.yaml` | `simulate --try` chưa chạy được trên `main`; nhánh cost xung đột | Duy Thành | CP4-3 | ☐ |
 | 23:25 | `evidence/labels/overlap_30_thanh.csv` | Khớp `30/30`, trùng cả `ghi_chu` 26/30, commit sau `part1` → xác nhận gắn mù; `part1` do AI gợi ý nên độ khớp là người ↔ AI | Duy Thành | CP3 10:00 T7 | ☑ Duy Thành xác nhận gắn mù |
 | 23:25 | `evidence/survey/` | `questions.md` lệch form thật; form thu email; 1 email gửi 2 lần; chưa có `results.csv` → chép bộ câu thật, viết `anonymize_survey.py`, sinh `results.csv` (25 dòng) | Khánh | CP3 10:00 T7 | ☑ |
 | 23:25 | `evidence/survey/` | Không loại được người trong nhóm (câu "Bạn là" không có lựa chọn này) → 4 người tự xác nhận không điền form | Cả nhóm | CP3 10:00 T7 | ☑ cả 4 người xác nhận |
