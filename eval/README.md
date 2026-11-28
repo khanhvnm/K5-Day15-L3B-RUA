@@ -70,3 +70,15 @@
 ## 4. Lệnh
 
 `python run.py eval` → `eval/run-N.csv` + `traces/run-N.jsonl` · điền cột `pass` (theo pass_criterion từng câu + 3 metric ở mục 3) · `python run.py score eval/run-N.csv`
+
+Chấm tự động: `python eval/grade_run.py eval/run-N.csv` — điền `pass` theo dòng `[QUYET_DINH=…]` + trần `policy.json`, in 3 metric; chạy lại không xoá điểm chấm tay.
+
+## 5. Các lượt chạy
+
+| Lượt | Run ID | Model | Đạt / tổng | thuong | kho | tu_choi | khong_vuot_han_muc | quyet_dinh_dung | chuyen_nguoi_dung_luc | Chuẩn "đạt" | Ai chạy / chấm |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | `run-1@20261128-081125` | `gpt-4o-mini` | **30/30 (100%)** | 9/9 | 15/15 | 6/6 | 30/30 | 30/30 | (a) 6/6 · (b) 10/10 | ✅ đạt | Khánh chạy (thay Vũ Thành, đã báo nhóm) · `grade_run.py` chấm, Khánh đọc lại cả 30 output |
+
+- Lượt 1: 0 câu lỗi · 29 lời gọi model (B14 chặn an toàn thực phẩm trước AI, 0 lời gọi) · tokens 48.455 vào / 3.349 ra · trễ trung bình 2,6 s/câu (tối đa 3,7 s).
+- **Đọc con số 100% cho đúng:** quyết định và `SO_TIEN` do code chốt (`check_limit` sau AI, chặn an toàn thực phẩm trước AI) — model chỉ phân loại yêu cầu và viết lời trả lời. Bộ 30 câu do nhóm tự viết trên 30 đơn giả, nên 100% ở đây **không** có nghĩa là đúng 100% với tin nhắn thật.
+- **Lỗi mà 3 metric không bắt được** (đọc tay lời trả lời, ghi ở cột `ghi_chu`, không đổi `pass`): 6/30 câu — thiếu "phiếu đề xuất nháp" (B04, B10, B18 · spec G1/G2), không nêu lý do chuyển người (B20, B23 · G11), bảo khách tự liên hệ nhân viên dù đã có mã ca (B29). Chung một nguyên nhân: model tự viết câu trả lời thay vì dùng câu mẫu, và code chỉ ghi đè khi lời trả lời nói "đã hoàn" hoặc nhắc số tiền khác `SO_TIEN`. → ứng viên cho CP4-1 (chi tiết `eval/report.md` mục 2).
