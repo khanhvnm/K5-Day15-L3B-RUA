@@ -178,10 +178,10 @@ flowchart TD
 - Kết quả: lượt 1 **30/30 (100%)** — ✅ đạt chuẩn (100% không vượt hạn mức · 6/6 `tu_choi`) · lượt 2 **30/30 (100%)** — ✅ đạt — run ID: `run-1@20261128-081125` / `run-2@20261128-084938` (cùng `gpt-4o-mini`) → chi tiết `eval/report.md`, hồ sơ `eval/README.md` mục 5. Quyết định + số tiền do code chốt nên 3 metric đã đạt ngay từ lượt 1. Cải tiến CP4-1 nhắm vào lời trả lời khách: nhóm lỗi "lời trả lời lệch quyết định" (thiếu "phiếu nháp" / thiếu lý do / bảo khách tự liên hệ) giảm từ **6/30 → 0/30** (đọc tay, `eval/report.md` mục 3)
 
 ## §8. Chi phí khi dùng thật *(guide 4.2)*
-- Persona + giá: `cost/personas.yaml` · lượt mô phỏng: `cost/simulate-__.csv` (__ phiên)
-- Chi phí / task thành công: __ (model __) · __ (model __)
-- Chi phí / tháng ở quy mô thật: thấp __ · cơ sở __ · cao __ → chi tiết `cost/cost-estimate.md`
-- So với impact / người / tháng (§2): đáng làm không, vì sao:
+- Persona + giá: `cost/personas.yaml`. 3 persona theo khảo sát câu 6 (n = 23): 0,73 · 2,5 · 4,5 phiên / người / tháng; số lượt hỏi / phiên *(tự ước tính)*. Lượt mô phỏng: `cost/simulate-1.csv` (**50 phiên**, 128 lượt hỏi, seed 42, 0 lỗi, `simulate-1@20261128-085957`). Tỉ lệ đạt lấy từ `run-2` (30/30).
+- Chi phí / task thành công: **$0.00080 ≈ 21 ₫ (model `gpt-4o-mini`, đang chạy)** · $0.0133 ≈ 346 ₫ (model `gpt-4o`) · $0.00053 ≈ 14 ₫ (`gemini-2.5-flash-lite`). Token đo trên `gpt-4o-mini`; 2 model sau chỉ tính theo giá, chưa chạy eval.
+- Chi phí / tháng ở quy mô thật (`gpt-4o-mini`): thấp **$467 ≈ 12,1 triệu ₫** (300.000 người) · cơ sở **$1,556 ≈ 40,5 triệu ₫** (1.000.000) · cao **$15,556 ≈ 404,6 triệu ₫** (10.000.000) → chi tiết `cost/cost-estimate.md`. Số người dùng là *(tự ước tính)*: chưa có số công khai riêng cho người dùng giao đồ ăn, mức cao = "hơn 10 triệu người dùng" của **cả app be** (CafeBiz 20/05/2025).
+- So với impact / người / tháng (§2): **đáng làm, nếu tính chi phí model.** Chi phí ≈ **40 ₫ / người / tháng**; đổi lại khách bớt được chắc chắn ≈ 15 phút liên hệ / tháng (trong ~70 phút mất vì đơn kẹt/trễ). Chi phí thật quyết định bài toán là **tiền bồi thường** theo chính sách và **giờ công nhân viên duyệt ca chuyển người**: 34% lượt hỏi mô phỏng tạo ca `CHUYEN_NV`, theo phân bố bộ câu thử nhiều ca khó. Phần này chưa tính được vì chưa có số liệu lương / năng suất CSKH. Giữ `gpt-4o-mini`: `gpt-4o` đắt ~16 lần mà quyết định đã do code chốt.
 
 ## §9. Rủi ro & an toàn
 - Dữ liệu: đã ẩn danh gì, không thu gì, không đưa gì vào model gói miễn phí:
@@ -204,6 +204,7 @@ flowchart TD
 | T7 08:28 28/11 (PR #17, #23) | Bằng chứng CP3: 300/300 nhãn, khảo sát n = 23; sửa nguồn trích sai về quy mô thị trường; thêm giới hạn "đặt nhầm" và 150/300 nhãn có AI gợi ý | Review CP3-4 đối chiếu lại nguyên văn 2 bài báo (`evidence/summary.md` §5–§6) |
 | T7 sáng 28/11 (nhánh `docs/cp3-spec-impact`) | Điền §0, §2 (impact), §3, §6; cập nhật §1 (số CP3), §4 (model thật, 25 test), §5 (+B23, B28) | Yêu cầu CP3 §0–§7 |
 | T7 08:49 28/11 (commit `f7310d8`, **cải tiến trước lượt 2**) | `HUY_HOAN` / `VOUCHER` / `CHUYEN_NV` (kể cả ngoài phạm vi): lời trả lời luôn là câu mẫu của code + `ly_do` của `check_limit`; `TU_CHOI` do model viết nhưng bị thay nếu nói "đã hoàn" hoặc nhắc số tiền | Nhóm lỗi lượt 1 "lời trả lời lệch quyết định" 6/30: B04, B10, B18 thiếu "phiếu nháp"; B20, B23 không nêu lý do; B29 bảo khách tự liên hệ (`eval/run-1.csv` cột `ghi_chu`). Lượt 2 `run-2@20261128-084938`: 0/30; B28 tệ đi nhẹ (`eval/report.md` mục 3) |
+| T7 09:00 28/11 (nhánh `cost/cp4-simulate`) | `cost/personas.yaml`: `users` 300k / 1 triệu / 10 triệu (bỏ số trích sai nguồn), phiên / tháng theo trung điểm khảo sát; chạy `simulate-1` (50 phiên); điền §8 | CP4-3; số người khớp §2, nguồn đã đối chiếu ở `evidence/summary.md` §6 |
 
 **Sau CP4 (đến 23:59 Thứ Bảy 28/11)** (sửa theo góp ý — không sửa chuẩn "đạt", câu thử, số bằng chứng, kết quả các lượt đã chạy)
 
