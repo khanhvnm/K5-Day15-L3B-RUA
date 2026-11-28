@@ -395,9 +395,9 @@ Thứ tự: 17:00–17:20 cả nhóm chốt policy + schema dữ liệu (mục 0
   3. Ghi dòng changelog vào `spec.md` §10 (giờ · đổi gì · vì sao, trỏ về id câu trượt).
   4. `python run.py eval` **trọn bộ, cùng bộ câu** → `run-2.csv` → chấm → `score`.
 - **Checklist output:**
-  - [ ] `eval/run-2.csv` + `traces/run-2.jsonl` đã commit, cùng model với lượt 1
-  - [ ] Changelog §10 có dòng cải tiến
-  - [ ] Có số lượt 1 → lượt 2 (vd 14/25 → 20/25)
+  - [x] `eval/run-2.csv` + `traces/run-2.jsonl` đã commit, cùng model với lượt 1 *(`run-2@20261128-084938`, `gpt-4o-mini`; cả nhóm làm trên máy Khánh)*
+  - [x] Changelog §10 có dòng cải tiến *(commit `f7310d8`)*
+  - [x] Có số lượt 1 → lượt 2 (vd 14/25 → 20/25) *(metric 30/30 → 30/30; nhóm lỗi "lời trả lời lệch quyết định" 6/30 → 0/30)*
 
 ### CP4-2 · Báo cáo đánh giá — **Việt Anh**
 - **Nhánh:** `eval/cp4-report`

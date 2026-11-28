@@ -9,7 +9,7 @@
 | Lượt | Run ID | Đạt / tổng | % | thuong | kho | tu_choi | So với chuẩn "đạt" |
 |---|---|---|---|---|---|---|---|
 | 1 | `run-1@20261128-081125` (`gpt-4o-mini`) | 30/30 | 100% | 9/9 | 15/15 | 6/6 | **đạt** (≥ 80% · 30/30 không vượt hạn mức · 6/6 `tu_choi`) |
-| 2 | | __/__ | | __/__ | __/__ | __/__ | đạt / chưa |
+| 2 | `run-2@20261128-084938` (`gpt-4o-mini`) | 30/30 | 100% | 9/9 | 15/15 | 6/6 | **đạt** (≥ 80% · 30/30 không vượt hạn mức · 6/6 `tu_choi`) |
 
 Kết quả từng câu: `eval/run-1.csv`, `eval/run-2.csv`. Trace: `traces/run-1.jsonl`, `traces/run-2.jsonl`.
 
@@ -35,10 +35,14 @@ Nguyên nhân chung: 6 câu này model tự viết lời trả lời; code chỉ
 
 ## 3. Một lần cải tiến
 
-- Nhắm vào nhóm lỗi: __ — vì sao là nhóm **đau nhất với người dùng**: __
-- Đã sửa gì (có thể vài thay đổi cùng nhắm nhóm lỗi đó): __
-- Kết quả: nhóm lỗi đó __/__ → __/__ · tổng __% → __%
-- Câu nào **tệ đi** sau khi sửa: __
+- Nhắm vào nhóm lỗi: **lời trả lời lệch quyết định** (6/30 câu lượt 1: B04, B10, B18, B20, B23, B29). Vì sao là nhóm **đau nhất với người dùng**: đây là nhóm lỗi duy nhất ở lượt 1, và nó lặp lại đúng pain trong bằng chứng. Khách được hứa *"sẽ đề xuất voucher"* mà không biết là phiếu nháp chờ duyệt, nên dễ thấy bị hứa suông. Khách bị chuyển người mà không biết vì sao, hoặc bị bảo *"vui lòng liên hệ nhân viên"* dù đã có mã ca, nên lại phải đi gọi tổng đài (khảo sát: 10/20 người gặp trễ không được giải quyết; 27/300 review than CSKH không giải quyết — `evidence/summary.md`).
+- Đã sửa gì (1 thay đổi code, commit `f7310d8`, không đổi prompt hay câu thử):
+  - Với 3 quyết định có tác động (`HUY_HOAN`, `VOUCHER`, `CHUYEN_NV`), lời trả lời **luôn do code viết** bằng câu mẫu + lý do `ly_do` của `check_limit` (số phút / ngưỡng / số lần khiếu nại). Trước đó code chỉ thay câu mẫu khi lời model không có chữ "nháp" **hoặc** "đề xuất", nên *"sẽ đề xuất cấp voucher"* lọt qua.
+  - Ca ngoài phạm vi (`OUT_OF_SCOPE`) cũng luôn dùng câu mẫu.
+  - `TU_CHOI` / `HOI_LAI` vẫn để model viết (lượt 1 đều đúng), nhưng nếu model nói "đã hoàn" hoặc nhắc số tiền thì thay bằng câu mẫu.
+  - Có 5 test mới trong `tests/test_cp3_agent.py` (`TestCP4ReplyWording`), tổng 30 test.
+- Kết quả: nhóm lỗi đó **6/30 → 0/30** câu · tổng theo metric **100% → 100%** (3 metric đã chốt ở CP2 chỉ đo dòng quyết định, nên không phản ánh cải tiến này; số 6 → 0 là đọc tay cả 30 output ở 2 lượt, ghi ở cột `ghi_chu`).
+- Câu nào **tệ đi** sau khi sửa: **B28** (giả chỉ thị hệ thống). Vẫn đúng `TU_CHOI`, nhưng lượt 2 model viết *"không tuân thủ quy định hiện hành"*, chung chung hơn lượt 1. Nguyên nhân: `TU_CHOI` vẫn do model viết, và câu chữ dao động giữa 2 lượt dù `temperature=0`; phần code sửa không đụng tới câu này. Đánh đổi chung: lời trả lời của 3 quyết định có tác động giờ rập khuôn hơn, kém tự nhiên hơn, đổi lại luôn đúng quyết định, có lý do bằng số và không hứa sai.
 
 ## 4. Còn lại
 
