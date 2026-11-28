@@ -7,6 +7,7 @@ Gồm đúng 5 công cụ gắn @tool:
   4. check_limit(issue_type, amount, order, complaints_in_month, request_type) — cổng kiểm soát hạn mức tất định
   5. escalate_to_human(case_id, reason) — tạo bản nháp mã ca CS-xxx chờ nhân viên duyệt
 """
+import copy
 from datetime import datetime
 import json
 import os
@@ -30,14 +31,28 @@ _PII_FIELDS = {
     "customer_address",
 }
 
+# Cache đọc file theo mtime để tránh đọc lại JSON nhiều lần trong cùng 1 lượt xử lý
+_DATA_CACHE: dict = {}
+
+# Theo dõi bồi thường trùng trong cùng một phiên (opt-in theo session_id cho demo nhiều lượt)
+SESSION_COMPENSATIONS: dict = {}
+
+
 def _read_data(filename: str):
-    """Đọc file nguồn sự thật trong data/. Thiếu file thì báo lỗi, KHÔNG dùng dữ liệu dự phòng
-    (dữ liệu giả viết cứng sẽ âm thầm cho ra quyết định sai mà không ai biết)."""
+    """Đọc file nguồn sự thật trong data/ (có cache theo mtime). Thiếu file thì báo lỗi."""
     path = os.path.join(DATA_DIR, filename)
     if not os.path.exists(path):
-        raise FileNotFoundError(f"Thiếu {path} — chạy `python data/gen_orders.py` để sinh lại dữ liệu.")
+        raise FileNotFoundError(
+            f"Thiếu {path} — chạy `python data/gen_orders.py` để sinh lại dữ liệu."
+        )
+    mtime_ns = os.stat(path).st_mtime_ns
+    cached = _DATA_CACHE.get(path)
+    if cached and cached[0] == mtime_ns:
+        return copy.deepcopy(cached[1])
     with open(path, encoding="utf-8") as f:
-        return json.load(f)
+        data = json.load(f)
+    _DATA_CACHE[path] = (mtime_ns, data)
+    return copy.deepcopy(data)
 
 
 def _normalize_order_id(order_id: str) -> str:
@@ -56,10 +71,34 @@ def _compute_minutes(order: dict) -> tuple:
     return phut_tu_luc_dat, phut_tre_so_voi_eta
 
 
+def record_session_compensation(session_id: str, order_id: str, decision: str) -> None:
+    """Ghi nhận đề xuất bồi thường đã tạo trong một phiên hội thoại (chỉ dùng khi truyền session_id)."""
+    if not session_id or decision not in ("HUY_HOAN", "VOUCHER"):
+        return
+    oid = _normalize_order_id(order_id)
+    SESSION_COMPENSATIONS.setdefault(session_id, set()).add((oid, decision))
+
+
+def has_session_compensation(session_id: Optional[str], order_id: str, decision: str) -> bool:
+    """Kiểm tra cặp (order_id, loại bồi thường) đã được tạo trong phiên hay chưa."""
+    if not session_id or decision not in ("HUY_HOAN", "VOUCHER"):
+        return False
+    oid = _normalize_order_id(order_id)
+    return (oid, decision) in SESSION_COMPENSATIONS.get(session_id, set())
+
+
+def reset_session_compensations(session_id: Optional[str] = None) -> None:
+    """Xóa lịch sử bồi thường phiên (1 phiên hoặc toàn bộ)."""
+    if session_id is None:
+        SESSION_COMPENSATIONS.clear()
+    else:
+        SESSION_COMPENSATIONS.pop(session_id, None)
+
+
 @tool
 def get_order(order_id: str) -> dict:
     """Tên: get_order — Tra cứu đơn hàng từ data/orders.json và tính số phút/hợp lệ trạng thái bằng code.
-    Input: order_id (str, hỗ trợ dạng '#dh-004', 'DH004', 'ĐH004', 'DH4').
+    Input: order_id (str, chấp nhận biến thể chữ hoa/thường, có dấu # hoặc -).
     Output: dict thông tin đơn (đã bỏ trường PII) kèm 'found', 'phut_tu_luc_dat', 'phut_tre_so_voi_eta', 'trang_thai_hop_le'; hoặc {'found': False, 'order_id': ...}.
     Tác động ra ngoài: Không (chỉ đọc)."""
     normalized_id = _normalize_order_id(order_id)
@@ -114,7 +153,7 @@ def get_policy(issue_type: str = "all") -> dict:
 @tool
 def get_complaint_history(user_id: str) -> dict:
     """Tên: get_complaint_history — Tra cứu số lần khiếu nại trong tháng của khách hàng từ data/complaint_history.json.
-    Input: user_id (str, ví dụ 'U07').
+    Input: user_id (str, mã người dùng lấy từ đơn hàng).
     Output: dict {'user_id': str, 'so_lan_thang_nay': int}.
     Tác động ra ngoài: Không (chỉ đọc)."""
     uid = str(user_id or "").strip()
@@ -132,10 +171,11 @@ def check_limit(
     order: dict,
     complaints_in_month: Optional[int] = None,
     request_type: str = "",
+    session_id: Optional[str] = None,
 ) -> dict:
     """Tên: check_limit — Cổng kiểm soát chính sách và hạn mức bồi thường tất định bằng code Python (không gọi AI).
-    Input: issue_type (str), amount (int), order (dict từ get_order), complaints_in_month (int|None, None sẽ tự đọc complaint_history.json theo order['user_id']), request_type ('HUY_DON'|'KHIEU_NAI_TRE', mặc định '').
-    Output: dict {'ok': bool (amount có hợp lệ với quyết định), 'expected_decision': str, 'max': int (số tiền đúng theo amount_formula: HUY_HOAN = total, VOUCHER = min(30000, total), còn lại 0), 'rule_id': str, 'ly_do': str}.
+    Input: issue_type (str), amount (int), order (dict từ get_order), complaints_in_month (int|None), request_type ('HUY_DON'|'KHIEU_NAI_TRE'), session_id (str|None, tùy chọn kiểm bồi thường trùng trong phiên).
+    Output: dict {'ok': bool, 'expected_decision': str, 'max': int, 'rule_id': str, 'ly_do': str}.
     Tác động ra ngoài: Không (tính toán thuần túy)."""
     policy = _read_data("policy.json")
     caps = policy.get("global_caps", {})
@@ -185,6 +225,7 @@ def check_limit(
             "Không tìm thấy đơn hàng hợp lệ trong hệ thống, cần hỏi lại mã đơn.",
         )
 
+    oid = str(order.get("order_id") or "")
     status = order.get("status", "")
     driver_status = order.get("driver_status", "")
 
@@ -224,8 +265,15 @@ def check_limit(
     total = int(order.get("total", 0))
     restaurant_prepared = bool(order.get("restaurant_prepared", False))
 
-    # 5. Nhánh HUY_DON
+    # 5. Nhánh HUY_DON (policy.json: restaurant_prepared / driver_status != 'none' -> CHUYEN_NV)
     if req == "HUY_DON":
+        if has_session_compensation(session_id, oid, "HUY_HOAN"):
+            return _finish(
+                "TU_CHOI",
+                0,
+                "duplicate_compensation",
+                f"Đơn {oid} đã có phiếu đề xuất hủy hoàn trong phiên này, không áp dụng bồi thường trùng.",
+            )
         if restaurant_prepared or driver_status != "none":
             return _finish(
                 "CHUYEN_NV",
@@ -262,6 +310,13 @@ def check_limit(
         )
 
     # 6. Nhánh KHIEU_NAI_TRE
+    if has_session_compensation(session_id, oid, "VOUCHER"):
+        return _finish(
+            "TU_CHOI",
+            0,
+            "duplicate_compensation",
+            f"Đơn {oid} đã có phiếu đề xuất voucher giao trễ trong phiên này, không áp dụng bồi thường trùng.",
+        )
     if phut_tre_so_voi_eta <= 0:
         detail = (
             f"còn/sớm hơn {abs(phut_tre_so_voi_eta)} phút"
@@ -311,7 +366,7 @@ DRAFT_CASES: list = []
 @tool
 def escalate_to_human(case_id: str, reason: str) -> dict:
     """Tên: escalate_to_human — Tạo bản nháp ca chuyển nhân viên CSKH xử lý, mã ca duy nhất CS-<tham chiếu>-<số thứ tự>.
-    Input: case_id (str, mã đơn hoặc nhãn tình huống như 'ATTP'), reason (str, lý do chuyển).
+    Input: case_id (str, mã đơn hoặc nhãn tình huống), reason (str, lý do chuyển).
     Output: dict {'ma_ca': str, 'tham_chieu': str, 'trang_thai': 'ban_nhap_cho_duyet', 'ly_do': str}.
     Tác động ra ngoài: Không gửi đi đâu — chỉ thêm bản nháp vào hàng chờ DRAFT_CASES (bộ nhớ) chờ nhân viên duyệt."""
     raw = str(case_id or "").strip()

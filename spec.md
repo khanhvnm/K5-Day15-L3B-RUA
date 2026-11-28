@@ -226,4 +226,4 @@ flowchart TD
 
 | Thời điểm | Đổi gì | Vì sao |
 |---|---|---|
-|  |  |  |
+| T7 10:34 28/11 | Nâng cấp luồng agent (`codebase/agent.py`, `tools.py`, `ai.py`, `tests/test_cp4_upgrades.py` — 41 test pass): DPA Dynamic Prompt, OpenAI `json_schema` (`strict: True`), Dual Security Gate bằng code, Hybrid Intent có đối chiếu quote, cache đọc JSON + kiểm bồi thường trùng theo `session_id` (khớp 100% `policy.json`). Chạy `eval/run-3.csv` (30/30 auto) → vá diễn đạt `B24`/`B28` → chốt `eval/run-4.csv` (`run-4@20261128-103234`): **30/30 (100%)**, 0 lỗi, tổng **42.137 `tokens_in` / 4.041 `tokens_out`** | Xử lý triệt để lỗi AI bất đồng trên `DH003` (`21 > 20`), khóa lớp chặn Prompt Injection/PII bằng code, đảm bảo `B24` nêu đúng *"sớm hơn ETA 5 phút"* & `B28` từ chối injection rõ ràng, đồng thời giảm 13,0% `tokens_in` so với `run-2` (`48.455 → 42.137`) |
