@@ -39,9 +39,9 @@ Ai nói trang nào (mỗi người ≥1 phần):
 | 1 | Trích dẫn review `2abeceb3…` (ShopeeFood 21/10/2026, 24 hữu ích) · khảo sát stt = 17 | `evidence/summary.md` §3 | ☑ |
 | 2 | 11,3% hoàn tiền · 3,0% thiếu/sai món · 3/20 hoàn chậm | `evidence/data-mining.md` §3 · `summary.md` §2 | ☑ |
 | 2 | 1,74 lần · 32' + 8,5' ≈ 40' · 1 triệu người (tự ước tính) · ≈ 1,16 triệu giờ · ~15 phút bớt được | `spec.md` §2 | ☑ |
-| 3 | trần 300.000đ / 30.000đ · trễ > 60' · khiếu nại ≥ 3 lần · 30 test | `data/policy.json` · `spec.md` §4 · `python -m unittest discover -s tests` | ☑ |
-| 4 | Output B01 (HUY_HOAN 110000) · B10 (VOUCHER 30000) · B26 (TU_CHOI, 29') | `eval/run-2.csv` (nguyên văn) | ☑ |
-| 5 | 30 câu (9 · 15 · 6 · 11 data thật) · run-1 / run-2 30/30 · 6/6 tu_choi · 6/30 → 0/30 | `eval/README.md` mục 5–6 · `python run.py score eval/run-1.csv` / `run-2.csv` | ☑ |
+| 3 | trần 300.000đ / 30.000đ · trễ > 60' · khiếu nại ≥ 3 lần · 42 test · cổng injection / PII bằng code | `data/policy.json` · `spec.md` §4 · `python -m unittest discover -s tests` | ☑ |
+| 4 | Output B01 (HUY_HOAN 110000) · B10 (VOUCHER 30000) · B26 (TU_CHOI, 29') | `eval/run-2.csv` (nguyên văn), giống `eval/run-7.csv` | ☑ |
+| 5 | 30 câu (9 · 15 · 6 · 11 data thật) · run-1 / run-2 30/30 · 6/6 tu_choi · 6/30 → 0/30 · run-7 (code demo) 30/30 | `eval/README.md` mục 5–6 · `python run.py score eval/run-1.csv` / `run-2.csv` / `run-7.csv` | ☑ |
 | 6 | 21 ₫ / 346 ₫ / 14 ₫ per task · 12,1 / 40,5 / 404,6 triệu ₫ · 40 ₫ / người · 50 phiên · 128 lượt · 34% chuyển người | `cost/simulate-1-summary.md` · `cost/cost-estimate.md` · `traces/simulate-1.jsonl` | ☑ |
 | 7 | 47,7% · 87% · 30/30 · ≈ 40 ₫ | trang 1, 5, 6 | ☑ |
 | 8 | Lỗi #1, #4 · cost mục 4 | `eval/report.md` mục 4 · `cost/cost-estimate.md` mục 4 | ☑ |

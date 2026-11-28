@@ -79,6 +79,23 @@ Chấm tự động: `python eval/grade_run.py eval/run-N.csv` — điền `pass
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 1 | `run-1@20261128-081125` | `gpt-4o-mini` | **30/30 (100%)** | 9/9 | 15/15 | 6/6 | 30/30 | 30/30 | (a) 6/6 · (b) 10/10 | ✅ đạt | Khánh chạy (thay Vũ Thành, đã báo nhóm) · `grade_run.py` chấm, Khánh đọc lại cả 30 output |
 | 2 | `run-2@20261128-084938` | `gpt-4o-mini` | **30/30 (100%)** | 9/9 | 15/15 | 6/6 | 30/30 | 30/30 | (a) 6/6 · (b) 10/10 | ✅ đạt | Cả nhóm trên máy Khánh · sau commit `f7310d8` (CP4-1) · `grade_run.py` chấm + đọc lại cả 30 output |
+| 3 | `run-3@20261128-102854` | `gpt-4o-mini` | 30/30 (100%) | 9/9 | 15/15 | 6/6 | 30/30 | 30/30 | (a) 6/6 · (b) 10/10 | ✅ đạt | Vũ Thành · nâng cấp DPA + `json_schema` + security gate · `grade_run.py` |
+| 4 | `run-4@20261128-103234` | `gpt-4o-mini` | 30/30 (100%) | 9/9 | 15/15 | 6/6 | 30/30 | 30/30 | (a) 6/6 · (b) 10/10 | ✅ đạt | Vũ Thành · sau khi vá câu chữ B24 / B28 · `grade_run.py` |
+| 5 | `run-5@20261128-113235` | `gpt-4o-mini` | 30/30 (100%) | 9/9 | 15/15 | 6/6 | 30/30 | 30/30 | (a) 6/6 · (b) 10/10 | ✅ đạt | Vũ Thành · thêm kiểm căn cứ cho `TU_CHOI`, cổng ngoài phạm vi bằng code · `grade_run.py` |
+| 6 | `run-6@20261128-115957` | `gpt-4o-mini` | 30/30 (100%) | 9/9 | 15/15 | 6/6 | 30/30 | 30/30 | (a) 6/6 · (b) 10/10 | ✅ đạt | Vũ Thành chạy · `grade_run.py` chấm lúc 13:35 (trước đó để trống `pass`) |
+| 7 | `run-7@20261128-133137` | `gpt-4o-mini` | **30/30 (100%)** | 9/9 | 15/15 | 6/6 | 30/30 | 30/30 | (a) 6/6 · (b) 10/10 | ✅ đạt | Khánh (Claude Code) chạy trên **code cuối trước CP4** (`f5a61ec`, đúng code đang demo) · `grade_run.py` chấm · đọc 30 output: không thấy câu lệch G1/G2/G11 |
+
+**Lượt nào dùng để chấm R5:** lượt 1 → lượt 2 (`run-1` → `run-2`), cùng code trừ đúng một cải tiến CP4-1. Lượt 3–7 là các lần nâng cấp thêm trước CP4, ghi ở `spec.md` §10; đều 30/30 nên **không đổi % đạt**, nhưng `run-7` là lượt đo đúng code đang demo.
+
+| Lượt | Gọi model | Token vào / ra (cả 30 câu) | Trễ TB / tối đa (s) | Lỗi |
+|---|---:|---:|---:|---:|
+| 1 | 29 | 48.455 / 3.349 | 2,6 / 3,7 | 0 |
+| 2 | 29 | 48.455 / 3.393 | 2,9 / 4,0 | 0 |
+| 3 | 29 | 42.007 / 4.055 | 2,8 / 4,3 | 0 |
+| 4 | 29 | 42.137 / 4.041 | 3,0 / 7,0 | 0 |
+| 5 | 29 | 47.480 / 4.382 | 3,1 / 6,2 | 0 |
+| 6 | 29 | 47.422 / 4.365 | 3,4 / 4,7 | 0 |
+| 7 | 29 | 47.712 / 4.365 | 2,9 / 4,7 | 0 |
 
 - Lượt 2: 0 câu lỗi · 29 lời gọi model · tokens 48.455 vào / 3.393 ra · trễ trung bình 2,9 s/câu (tối đa 4,0 s). Cùng bộ 30 câu, cùng model, cùng `.env`.
 - **Nhóm lỗi đã sửa ở CP4-1 — "lời trả lời lệch quyết định"** (đọc tay, ghi ở `ghi_chu`): lượt 1 **6/30** → lượt 2 **0/30**. Câu tệ đi: B28 lời từ chối chung chung hơn (vẫn đúng `TU_CHOI`). Chi tiết `eval/report.md` mục 3.
@@ -93,13 +110,17 @@ Chấm tự động: `python eval/grade_run.py eval/run-N.csv` — điền `pass
 |---|---|---|---|---|
 | 1 | `2df33f9` (`main` sau PR #21) | `gpt-4o-mini` · OpenAI Chat Completions · `temperature=0` · JSON mode · 1 lời gọi / câu | 30 câu `benchmark.csv` | — |
 | 2 | `f7310d8` (nhánh `feat/cp4-fix-loi-tra-loi`) | như lượt 1 (cùng `.env`, cùng máy) | 30 câu, không đổi câu nào | `HUY_HOAN` / `VOUCHER` / `CHUYEN_NV` dùng câu mẫu + lý do của `check_limit` (CP4-1) |
+| 3–4 | code trong commit `8646bc3` (chạy trước khi commit) | `gpt-4o-mini` · `temperature=0` · **`json_schema` strict** · 1 lời gọi / câu | 30 câu, không đổi | Prompt theo nút trạng thái đơn (DPA), cổng injection / PII bằng code, che PII trước khi gửi model, chống bồi thường trùng theo `session_id`; lượt 4 vá câu chữ B24 / B28 |
+| 5 | code trong commit `ffd874b` | như lượt 3 | 30 câu, không đổi | Kiểm `TU_CHOI` phải nêu đúng số phút / ngưỡng, cổng ngoài phạm vi bằng code, tách B30 |
+| 6 | code trong commit `3e1e758` | như lượt 3 | 30 câu, không đổi | Hàng chờ bản nháp theo phiên, che PII trong bản nháp `CS-…` |
+| 7 | `f5a61ec` (`main`, gồm `95783a9` — sửa cuối 12:08) | như lượt 3 | 30 câu, không đổi | Không sửa code; đo lại đúng bản đang demo |
 
-**Đọc một dòng:** dataset 30 đơn giả → 30 câu thử (11 câu từ review thật) → 3 metric chấm bằng code → lượt 1 và lượt 2 đều **30/30**, đạt chuẩn `spec.md` §7.
+**Đọc một dòng:** dataset 30 đơn giả → 30 câu thử (11 câu từ review thật) → 3 metric chấm bằng code → lượt 1 và lượt 2 đều **30/30**, đạt chuẩn `spec.md` §7; các lượt 3–7 trên code nâng cấp cũng 30/30.
 
 **Lỗi chính** (chi tiết + mức nguy hiểm: `eval/report.md` mục 2–4):
 - Đã sửa: **lời trả lời lệch quyết định**, 6/30 → 0/30 (thiếu "phiếu nháp", thiếu lý do, bảo khách tự liên hệ).
 - Còn lại:
-  - Phát hiện prompt injection chỉ dựa vào model; tiền vẫn bị `check_limit` giữ trong hạn mức.
-  - Một số cách nói "đòi hủy" chưa nhận ra ("sao vẫn chưa hủy đơn", "thôi khỏi giao nữa").
+  - Phát hiện prompt injection: đến lượt 2 chỉ dựa vào model. Từ lượt 3 có thêm lớp so mẫu bằng code (`_detect_security_risks`), nhưng cách viết mới ngoài mẫu vẫn dựa vào model và chưa có câu tấn công mới để đo. Tiền vẫn bị `check_limit` giữ trong hạn mức.
+  - Một số cách nói "đòi hủy" chưa nhận ra ở lượt 2 ("sao vẫn chưa hủy đơn", "thôi khỏi giao nữa"); code bản cuối (`run-7`) **đã nhận ra** cả hai (thử tay `_wants_cancel`, 13:40 28/11), nhưng 2 câu này không có trong bộ 30 câu nên chưa có số đo.
   - Lời `TU_CHOI` do model viết, dao động giữa các lượt.
 - Giới hạn của con số: 3 metric chỉ đo dòng quyết định; bộ câu tự viết trên data giả, chưa thử với người dùng thật.

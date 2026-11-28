@@ -1,4 +1,4 @@
-# AI SPEC — FoodResolve: xử lý khiếu nại đơn giao đồ ăn bị kẹt / trễ · Nhóm RUA · Phòng D303 · Zone 1
+# AI SPEC — FoodResolve: xử lý khiếu nại đơn giao đồ ăn bị kẹt / trễ · Nhóm RUA · Phòng D303 · Zone 2
 
 > Mốc nộp: §7 chốt chuẩn "đạt" tại **CP2 19:30 Thứ Sáu 27/11** · §0–§7 nộp **CP3 10:00 Thứ Bảy 28/11** · đủ §0–§10 **CP4 14:30 Thứ Bảy 28/11** · §10 changelog ghi tiếp đến **23:59 Thứ Bảy 28/11**.
 > Đầu mỗi mục ghi bước guide (`02-guide.md` trong repo đề) chỉ cách điền. Mỗi mục ngắn, có số và nguồn; chi tiết để ở file được trỏ tới. Xoá dòng hướng dẫn trong ngoặc vuông khi điền xong.
@@ -57,41 +57,46 @@ Data BTC cấp đã dùng (nếu có — không commit nguyên file): **không d
   3. Đổi địa chỉ giao, khiếu nại thái độ tài xế → chuyển nhân viên.
   4. Hoàn tiền thật qua cổng thanh toán / phát voucher thật → chỉ tạo phiếu đề xuất nháp chờ xác nhận.
   5. Cung cấp SĐT / địa chỉ tài xế hay bất kỳ ai → từ chối.
-- **Sơ đồ kiến trúc** (4 tầng Input → AI Core → Chặn rủi ro → Output, khớp `codebase/agent.py`):
+- **Sơ đồ kiến trúc** (4 tầng Input → AI Core → Chặn rủi ro → Output, khớp `answer()` trong `codebase/agent.py` bản cuối trước CP4 — đo bằng lượt `run-7`). Sơ đồ bản lượt 1 / lượt 2 (trước nâng cấp 10:43) xem `git show f7310d8:spec.md`.
 
 ```mermaid
 flowchart TD
-    subgraph S1["① INPUT — dữ liệu vào (code + tool, không AI)"]
-        A["Tin nhắn khách"] --> B["Chuẩn hoá NFC + regex mã đơn DHxxx"]
-        C["Tool tra cứu: get_order · get_policy · get_complaint_history<br/>số phút tính bằng code từ data/"]
+    subgraph S1["① INPUT — code + tool, không AI"]
+        A["Tin nhắn khách"] --> B["Chuẩn hoá NFC, bỏ ký tự ẩn<br/>regex mã đơn DHxxx"]
+        C["Tool: get_order · get_policy · get_complaint_history<br/>số phút tính bằng code từ data/"]
+        N["_route_sop_node: chọn nút theo trạng thái đơn<br/>(chờ tài xế / đang giao / đã giao / đã hủy / không thấy đơn)<br/>+ _preview_branch_eligibility: nhánh chính sách đơn này đủ điều kiện"]
+        M["_mask_pii: che SĐT / email / CCCD / địa chỉ<br/>TRƯỚC khi gửi model"]
     end
     subgraph S2["② AI CORE — đúng 1 lời gọi model"]
-        D["call_model: SYSTEM + dữ liệu hệ thống + tin nhắn khách<br/>→ JSON phan_loai · request_type · quyet_dinh · so_tien · tra_loi_khach"]
+        D["call_model: prompt riêng theo nút (_build_node_prompt từ policy.json)<br/>gpt-4o-mini · temperature 0 · json_schema strict<br/>→ phan_loai · request_type · quyet_dinh · so_tien · ly_do · tra_loi_khach · cờ injection / PII / ngoài phạm vi"]
     end
-    subgraph S3["③ CHẶN RỦI RO — code thuần, không gọi AI"]
-        R0{"Từ khoá an toàn thực phẩm?<br/>chạy TRƯỚC AI, 0 token"}
-        R1{"JSON hợp lệ + đủ khoá bắt buộc?"}
-        R2{"phan_loai"}
-        R3["request_type: HUY_DON chỉ khi khách nói rõ muốn hủy<br/>hoặc đòi hoàn tiền trên đơn chưa có tài xế (code kiểm, có xét phủ định)"]
-        R4["check_limit: quyết định + số tiền theo policy.json<br/>HUY_HOAN = total ≤ 300.000đ · VOUCHER = min(30.000đ, total)"]
+    subgraph S3["③ CHẶN RỦI RO — code thuần"]
+        R0{"An toàn thực phẩm?<br/>TRƯỚC AI, 0 token"}
+        G0["Cổng code chạy song song: _detect_non_food_oos · _detect_security_risks<br/>(injection, đòi / gửi PII)"]
+        R1{"JSON đúng schema + enum?"}
+        R2{"Ưu tiên: ① ngoài phạm vi (code HOẶC AI)<br/>② injection / PII (code HOẶC AI)<br/>③ không thấy đơn ④ trong phạm vi"}
+        R3["_resolve_request_type: HUY_DON chỉ khi khách nói rõ<br/>(có xét phủ định, đối chiếu quote AI trích với tin nhắn)"]
+        R4["check_limit: quyết định + số tiền theo policy.json<br/>HUY_HOAN = total ≤ 300.000đ · VOUCHER = min(30.000đ, total)<br/>chặn bồi thường trùng trong phiên (session_id)"]
         R5{"AI và chính sách cùng quyết định?"}
     end
     subgraph S4["④ OUTPUT"]
         O1["CHUYEN_NV + escalate_to_human<br/>bản nháp mã ca CS-…"]
-        O2["TU_CHOI hoặc HOI_LAI, 0đ"]
-        O3["Quyết định của check_limit<br/>HUY_HOAN / VOUCHER chỉ là phiếu đề xuất nháp"]
-        Z["Ẩn SĐT + dòng 1 cố định QUYET_DINH · SO_TIEN · MA_CA<br/>+ câu trả lời nêu lý do bằng số"]
+        O2["TU_CHOI 0đ (câu mẫu) · HOI_LAI 0đ"]
+        O3["Quyết định của check_limit<br/>HUY_HOAN / VOUCHER = phiếu đề xuất nháp, câu mẫu của code"]
+        Z["Ẩn PII + dòng 1 cố định QUYET_DINH · SO_TIEN · MA_CA<br/>TU_CHOI do AI viết phải nêu đúng số phút / ngưỡng, không thì thay câu mẫu"]
     end
     B --> R0
     R0 -- có --> O1
-    R0 -- không --> C
-    C --> D
+    R0 -- không --> G0
+    G0 --> C
+    C --> N --> M --> D
     D --> R1
     R1 -- "không" --> O1
     R1 -- "có" --> R2
-    R2 -- "OUT_OF_SCOPE" --> O1
-    R2 -- "SECURITY_PII / không thấy đơn" --> O2
-    R2 -- "IN_SCOPE" --> R3
+    R2 -- "① ngoài phạm vi" --> O1
+    R2 -- "② injection / PII" --> O2
+    R2 -- "③ không thấy đơn" --> O2
+    R2 -- "④ IN_SCOPE" --> R3
     R3 --> R4
     R4 --> R5
     R5 -- "khác nhau mà chính sách cho chi tiền" --> O1
@@ -103,10 +108,11 @@ flowchart TD
 
   | Tầng | Thành phần trong code | Vai trò |
   |---|---|---|
-  | ① Input | `answer()` chuẩn hoá NFC, `_extract_order_id`, `get_order` / `get_policy` / `get_complaint_history` (`codebase/tools.py`) | Lấy căn cứ thật từ `data/`; số phút tính bằng code, không để AI tính |
-  | ② AI Core | `call_model` (`codebase/ai.py`), 1 lần / tin nhắn; từ CP3 gọi `gpt-4o-mini` (OpenAI, `temperature=0`, JSON mode). Chế độ giả / JSON không đọc được → `CHUYEN_NV` | Phân loại yêu cầu (trong / ngoài phạm vi, đòi hủy hay than trễ) và viết câu trả lời |
-  | ③ Chặn rủi ro | `_has_food_safety_issue` (trước AI) · kiểm JSON + khoá bắt buộc · `_resolve_request_type` · `check_limit` · luật "chỉ được hạ quyết định" · `_mentions_other_amount` | Không chi vượt hạn mức, không tự hủy đơn khách không đòi, không để AI tự quyết số tiền |
-  | ④ Output | `_format_output` + `_sanitize_reply` · `escalate_to_human` | Dòng `[QUYET_DINH=… \| SO_TIEN=… \| MA_CA=…]` để chấm bằng code; ẩn SĐT; ca chuyển người chỉ là bản nháp |
+  | ① Input | `answer()` chuẩn hoá NFC, `_extract_all_order_ids`, `get_order` / `get_policy` / `get_complaint_history` (`codebase/tools.py`), `_route_sop_node`, `_preview_branch_eligibility`, `_mask_pii` | Lấy căn cứ thật từ `data/`; số phút và nhánh chính sách đủ điều kiện tính bằng code; PII của khách không gửi lên model |
+  | ② AI Core | `call_model` (`codebase/ai.py`), 1 lần / tin nhắn, `gpt-4o-mini` (OpenAI, `temperature=0`, `response_format=json_schema` `strict: True` theo `LLM_RESPONSE_SCHEMA`); prompt dựng theo nút trạng thái đơn (`_build_node_prompt`). Chế độ giả / JSON sai schema → `CHUYEN_NV` | Phân loại yêu cầu (trong / ngoài phạm vi, đòi hủy hay than trễ, có injection / PII không) và viết câu trả lời |
+  | ③ Chặn rủi ro | `_has_food_safety_issue` (trước AI) · `_detect_non_food_oos` + `_detect_security_risks` (code, không cần AI đồng ý) · `_validate_llm_payload` · `_resolve_request_type` · `check_limit` (+ `session_id` chống bồi thường trùng) · luật "chỉ được hạ quyết định" · `_is_tu_choi_reply_grounded` · `_mentions_other_amount` | Không chi vượt hạn mức, không tự hủy đơn khách không đòi, không để AI tự quyết số tiền, injection / PII bị chặn kể cả khi AI bỏ sót |
+  | ④ Output | `_format_output` + `_sanitize_reply` · `_reconcile_case_ids` · `escalate_to_human` | Dòng `[QUYET_DINH=… \| SO_TIEN=… \| MA_CA=…]` để chấm bằng code; ẩn PII; ca chuyển người chỉ là bản nháp |
+  | Giao diện | `python run.py` (dòng lệnh, `codebase/app.py`) · `python codebase/web_demo.py` → http://127.0.0.1:8000 (`codebase/demo.html`, chỉ thư viện chuẩn) | Cả hai gọi cùng `answer()`; web demo thêm `session_id` theo phiên (chống bồi thường trùng, hàng chờ bản nháp theo phiên) |
 
 - **Hình dạng:** [x] workflow cố định · [ ] một agent · [ ] nhiều agent — các bước lặp lại giống nhau cho mọi tin nhắn (tra đơn → phân loại → kiểm hạn mức) và đều đã biết trước, nên AI chỉ cần gọi **1 lần** ở bước phân loại; tiền do code quyết theo `policy.json`. **Không** chọn agent tự chọn bước vì không có bước nào cần AI tự quyết gọi công cụ nào: agent sẽ tốn nhiều lượt gọi model hơn, khó đo, và mở thêm đường để model tự gọi công cụ chi tiền.
 - **AI dựa vào đâu** — mỗi công cụ (khớp `codebase/tools.py`):
@@ -126,7 +132,8 @@ flowchart TD
   - `HUY_DON` chỉ khi khách nói rõ muốn hủy, hoặc đòi hoàn tiền trên đơn chưa có tài xế. Code kiểm từ khóa có xét phủ định ("đừng hủy", "chưa hủy đâu"), không tin nhãn của AI.
   - An toàn thực phẩm chặn bằng từ khóa **trước** AI (0 token).
   - Mã ca `CS-…` do model tự đặt bị thay bằng mã thật của `escalate_to_human`, hoặc bị xoá nếu không chuyển người.
-  - Kiểm bằng 25 test (`python -m unittest discover -s tests`): `test_cp2_agent.py` 16 · `test_cp3_agent.py` 5 · `test_grade_run.py` 4. Lượt 1 (`run-1`, `gpt-4o-mini`): 30/30 câu không vượt hạn mức.
+  - Từ 10:43 28/11: prompt injection và đòi / gửi PII có thêm lớp chặn **bằng code** (`_detect_security_risks`, mẫu ở `_INJECTION_PATTERNS`, `_PII_REQUEST_PATTERNS`), PII bị che trước khi gửi model (`_mask_pii`); ngoài phạm vi có cổng code `_detect_non_food_oos`. Lớp chặn injection bằng code là **so mẫu**, cách viết mới chưa có trong mẫu vẫn chỉ dựa vào model (`eval/report.md` §4).
+  - Kiểm bằng 42 test (`python -m unittest discover -s tests`), gồm `test_cp4_upgrades.py` cho các lớp mới. Lượt 1 → `run-7`: 30/30 câu không vượt hạn mức ở mọi lượt (`eval/README.md` bảng các lượt).
 - **Chỗ người duyệt** (việc AI không được tự làm): mọi ca vượt hạn mức (> 300.000đ, trễ > 60'), quán đã làm món / tài xế đã nhận mà khách đòi hủy, an toàn thực phẩm và các ca ngoài phạm vi, khách khiếu nại ≥ 3 lần / tháng, dữ liệu đơn mâu thuẫn, và mọi lần AI bất đồng với chính sách. Cả `HUY_HOAN` / `VOUCHER` cũng chỉ là phiếu đề xuất nháp chờ hệ thống / nhân viên xác nhận.
 - **Nguyên tắc thiết kế** (≥3, bắt buộc G10):
 
@@ -141,7 +148,8 @@ flowchart TD
   - **Model: thật** từ CP3 — `gpt-4o-mini` qua OpenAI (`.env`: `MODEL_PROVIDER=openai`), token lấy từ `usage`. Lượt 1 `run-1@20261128-081125`: 29 lời gọi model, 48.455 token vào / 3.349 ra (`eval/run-1.csv`, `traces/run-1.jsonl`). Không có `.env` thì chạy chế độ giả (0 token, luôn ra `CHUYEN_NV`); lượt chạy giả không tính.
   - **Hoàn tiền / voucher:** `HUY_HOAN` và `VOUCHER` chỉ là quyết định + số tiền trên dòng output, không gọi cổng thanh toán hay hệ thống voucher nào; câu trả lời cho khách ghi rõ là "phiếu đề xuất nháp chờ xác nhận".
   - **Chuyển nhân viên:** `escalate_to_human` chỉ tạo bản nháp trong bộ nhớ của tiến trình (mất khi tắt chương trình), không gửi tới hệ thống CSKH hay ticket thật.
-  - **Bồi thường trùng:** chỉ chặn được qua `status = cancelled` (DH022); data không có lịch sử bồi thường theo đơn nên chưa kiểm được bồi thường lặp trên đơn chưa huỷ.
+  - **Bồi thường trùng:** chặn qua `status = cancelled` (DH022), và từ 10:43 28/11 chặn thêm trong **cùng một phiên** (`session_id`, bộ nhớ tiến trình, mất khi tắt server / bấm "Làm mới phiên"). Data không có lịch sử bồi thường theo đơn giữa các phiên nên chưa kiểm được bồi thường lặp qua nhiều phiên. `run.py eval` / `simulate` gọi `answer(text)` không có `session_id`, nên lớp này chỉ thử bằng test và web demo.
+  - **Web demo** (`codebase/web_demo.py`): chạy cục bộ `127.0.0.1:8000`, không đưa lên mạng; trạng thái phiên và hàng chờ bản nháp chỉ nằm trong bộ nhớ.
 
 ## §5. Chỗ khó — 4 lớp + ≥6 kịch bản + 2 tấn công *(guide 2.3)*
 
@@ -223,7 +231,8 @@ flowchart TD
 | T7 09:25 28/11 (nhánh `docs/cp4-slides`) | Slide 8 trang `demo-slides.pdf`; điền §9; README "Dùng AI" bổ sung CP3–CP4 | CP4-4; mọi số trên slide đối chiếu với file nguồn (`slides/outline.md`) |
 | T7 10:34 28/11 (trước CP4) | Nâng cấp luồng agent (`codebase/agent.py`, `tools.py`, `ai.py`, `tests/test_cp4_upgrades.py` — 41 test pass): DPA Dynamic Prompt, OpenAI `json_schema` (`strict: True`), Dual Security Gate bằng code, Hybrid Intent có đối chiếu quote, cache đọc JSON + kiểm bồi thường trùng theo `session_id` (khớp 100% `policy.json`). Chạy `eval/run-3.csv` (30/30 auto) → vá diễn đạt `B24`/`B28` → chốt `eval/run-4.csv` (`run-4@20261128-103234`): **30/30 (100%)**, 0 lỗi, tổng **42.137 `tokens_in` / 4.041 `tokens_out`** | Xử lý triệt để lỗi AI bất đồng trên `DH003` (`21 > 20`), khóa lớp chặn Prompt Injection/PII bằng code, đảm bảo `B24` nêu đúng *"sớm hơn ETA 5 phút"* & `B28` từ chối injection rõ ràng, đồng thời giảm 13,0% `tokens_in` so với `run-2` (`48.455 → 42.137`) |
 | T7 11:30 28/11 (trước CP4) | Vá logic trước `run-5` (`codebase/agent.py`, `tools.py`, `web_demo.py`, `demo.html`, `tests/test_cp4_upgrades.py`): Grounded Explanation Validator (`_is_tu_choi_reply_grounded`) cho `TU_CHOI` + diễn đạt đơn `delivered` theo `DATA_CARD.md`; Code OOS Gate (`_detect_non_food_oos`) ưu tiên mục 1 > mục 2 và tách `B30`; đồng bộ kiểm trùng `session_id` vào DPA preview; cập nhật luồng demo theo session. Chạy `eval/run-5.csv` (`run-5@20261128-113235`): **30/30 (100%)**, 0 lỗi, tổng **47.480 `tokens_in` / 4.382 `tokens_out`** | Siết chặt grounding `TU_CHOI` (`B06`, `B17`, `B22`, `B24`, `B25`, `B26`), giữ đúng thứ tự ưu tiên `policy.json` mục 1 > mục 2, tách đúng `B30` và đồng bộ demo theo phiên |
-| T7 12:07 28/11 (trước CP4) | Hoàn thiện `web_demo.py` + `tools.py` (reset đồng bộ `DRAFT_CASES` theo `session_id`, ẩn PII ở `effective_input` & bản nháp `CS-...`); chạy `eval/run-6.csv` (`run-6@20261128-115957`, chưa chấm cột `pass`, 0 lỗi, **47.422 `tokens_in` / 4.365 `tokens_out`**). Sau đó sửa lại `agent.py`, `demo.html`, `tests/test_cp4_upgrades.py` (**42/42 test pass**) |
+| T7 12:07 28/11 (trước CP4) | Hoàn thiện `web_demo.py` + `tools.py` (reset đồng bộ `DRAFT_CASES` theo `session_id`, ẩn PII ở `effective_input` & bản nháp `CS-...`); chạy `eval/run-6.csv` (`run-6@20261128-115957`, chưa chấm cột `pass`, 0 lỗi, **47.422 `tokens_in` / 4.365 `tokens_out`**). Sau đó sửa lại `agent.py`, `demo.html`, `tests/test_cp4_upgrades.py` (**42/42 test pass**) | Web demo dùng nhiều phiên cùng lúc thì hàng chờ bản nháp và chống bồi thường trùng phải tách theo phiên; bản nháp `CS-…` và input lưu lại không được chứa PII (spec §9, câu thử B11) |
+| T7 13:30 28/11 (trước CP4, nhánh `docs/cp4-final-sync`) | Chạy `run-7@20261128-133137` trên code cuối (`f5a61ec`) → **30/30**; chấm `run-6` và `run-7` bằng `grade_run.py` (chỉ điền cột `pass`); vẽ lại sơ đồ §4 theo code mới; `eval/README.md` thêm lượt 3–7; `eval/report.md` §4 và `cost/cost-estimate.md` ghi ảnh hưởng của nâng cấp; slide trang 3, 5, 7, 8 + xuất lại `demo-slides.pdf`; README thêm lệnh web demo, bỏ chữ "chế độ giả"; video CP3 dùng làm video dự phòng; phòng demo D303 Zone 2 | Commit cuối `95783a9` (12:08) sửa `agent.py` sau `run-6`, nên code đang demo chưa có lượt đo; tài liệu và slide còn mô tả code của lượt 2 (rubric R3 "code khớp sơ đồ", R7 "số trên slide truy được về file") |
 
 **Sau CP4 (đến 23:59 Thứ Bảy 28/11)** (sửa theo góp ý — không sửa chuẩn "đạt", câu thử, số bằng chứng, kết quả các lượt đã chạy)
 

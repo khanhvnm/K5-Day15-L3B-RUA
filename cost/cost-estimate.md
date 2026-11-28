@@ -26,6 +26,7 @@
   - Tỷ giá 1 USD = 26.010 ₫ (Vietcombank bán ra 27/11/2026).
   - Nhóm không truy cập được `further-reading/model-prices.md` của repo đề, nên giá chép từ trang giá chính thức của nhà cung cấp.
 - **Tỉ lệ đạt** dùng để tính: **30/30 (100%)** — lượt `run-2@20261128-084938` (lượt 2, `--rate-from eval/run-2.csv`).
+- **Code dùng khi mô phỏng:** bản của lượt 2 (`f7310d8`). Code đang demo (lượt `run-7`) đã nâng cấp thêm; token cả bộ 30 câu: lượt 2 = 48.455 vào / 3.393 ra, `run-7` = 47.712 vào / 4.365 ra (`eval/README.md` mục 5), tức chi phí / câu tăng ≈ 5% theo giá `gpt-4o-mini` ($0.00930 → $0.00978 cho cả 30 câu, *tính từ 2 dòng trên*), vẫn ≈ 21–22 ₫ / task. Nhóm **không chạy lại** mô phỏng; số dưới đây vẫn là `simulate-1`.
 - Đo token trên model **`gpt-4o-mini`**, tính giá model **`gpt-4o`** và **`gemini-2.5-flash-lite`**. Hai model này chưa chạy thật: bộ tách token khác nên số token thật có thể lệch, và tỉ lệ đạt trên 2 model này **chưa đo**.
 
 ## 2. Kết quả mô phỏng

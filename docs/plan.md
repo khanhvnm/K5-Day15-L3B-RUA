@@ -507,7 +507,7 @@ Thứ tự: 17:00–17:20 cả nhóm chốt policy + schema dữ liệu (mục 0
 | 18:55 | CP2-3 · `eval/README.md` mục 3 | Chấm thử 5 output với người thứ hai (phiếu `eval/cham-thu-cp2.md`), cần khớp ≥ 4/5 | Việt Anh + Khánh | 19:30 T6 | ☑ khớp 5/5 |
 | 18:55 | CP2-4 · form CP2 | Nộp form CP2 kèm chuẩn đạt §7 + tiến độ bằng chứng | Khánh | 19:30 T6 | ☐ |
 | 18:55 | lịch sử git · commit `b7cc79b` | File review thô vẫn còn trong lịch sử → nhóm quyết có viết lại lịch sử + force-push `main` không | Cả nhóm | ngoài giờ freeze | ☐ |
-| 18:55 | `spec.md` header, §3 | Phòng / Zone · Data BTC đã dùng · mỗi người thử 10' trợ lý ShopeeFood / GrabFood / be, gửi 1 dòng | Cả nhóm | CP3 10:00 T7 | ◐ Phòng D303 / Zone 1 · không dùng data BTC (review tự thu thập từ Google Play) · §3 **chưa ai tự thử** trợ lý app |
+| 18:55 | `spec.md` header, §3 | Phòng / Zone · Data BTC đã dùng · mỗi người thử 10' trợ lý ShopeeFood / GrabFood / be, gửi 1 dòng | Cả nhóm | CP3 10:00 T7 | ◐ Phòng D303 / Zone 2 (sửa 13:30 T7 theo Cổng tra cứu) · không dùng data BTC (review tự thu thập từ Google Play) · §3 **chưa ai tự thử** trợ lý app |
 | 23:25 | `evidence/labels/part4.csv` | Mất 1 dòng (74/75) → `--verify` lệch seed, mẫu còn 299 → chèn lại, gắn `khac` | Việt Anh xác nhận | CP3 10:00 T7 | ☑ |
 | 23:25 | `evidence/labels/part2.csv`, `part4.csv` | 5 dòng đặt nhãn chính trái luật ưu tiên → đảo lại (danh sách ở `data-mining.md` mục 3) | Vũ Thành · Việt Anh xác nhận | CP3 10:00 T7 | ☑ |
 | 09:00 T7 | PR #19 · `codebase/agent.py` | Regex phủ định hủy/hoàn thiếu ranh giới từ: "ok hủy" bị hiểu là "không hủy" (đơn đủ điều kiện ra TU_CHOI); "chưa hủy đâu" vẫn bị coi là đòi hủy; "sao chưa hoàn tiền" bị coi là phủ định → sửa + 2 test; 30 câu thử không đổi kết quả | Vũ Thành xác nhận | trước CP3-3 | ☑ |
