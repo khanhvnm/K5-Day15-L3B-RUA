@@ -95,9 +95,9 @@
   <h1>AI phân loại — code quyết tiền — người duyệt ca khó</h1>
   <p><b>Lát cắt:</b> khách nhắn khiếu nại đơn kẹt / trễ → hệ thống đề xuất <code>HUY_HOAN</code> / <code>VOUCHER</code> / <code>HOI_LAI</code> / <code>CHUYEN_NV</code> / <code>TU_CHOI</code>, kèm lý do bằng số.</p>
   <div class="flow">
-    <div class="step code"><b>① Chặn trước AI</b>an toàn thực phẩm (từ khoá, 0 token) → chuyển người ngay</div><div class="arrow">→</div>
+    <div class="step code"><b>① Chặn bằng code</b>an toàn thực phẩm (0 token) → chuyển người; injection / PII / ngoài phạm vi; che PII trước khi gửi AI</div><div class="arrow">→</div>
     <div class="step code"><b>② Tra dữ liệu</b>get_order · get_policy · lịch sử khiếu nại · số phút tính bằng code</div><div class="arrow">→</div>
-    <div class="step ai"><b>③ 1 lời gọi AI</b>gpt-4o-mini → JSON: trong/ngoài phạm vi, đòi hủy hay than trễ</div><div class="arrow">→</div>
+    <div class="step ai"><b>③ 1 lời gọi AI</b>gpt-4o-mini, prompt theo trạng thái đơn → json_schema strict: trong/ngoài phạm vi, đòi hủy hay than trễ</div><div class="arrow">→</div>
     <div class="step code"><b>④ check_limit</b>quyết định + số tiền theo policy.json; AI chỉ được <i>hạ</i>, không được nâng</div><div class="arrow">→</div>
     <div class="step code"><b>⑤ Output</b>dòng [QUYET_DINH | SO_TIEN | MA_CA] + câu trả lời; tiền chỉ là phiếu nháp</div>
   </div>
@@ -106,7 +106,7 @@
     <div class="card"><h2>Chuyển người khi</h2><ul><li>Trễ &gt; 60' · đơn &gt; 300.000đ · quán đã làm món</li><li>Khiếu nại ≥ 3 lần / tháng · dữ liệu mâu thuẫn · ngoài phạm vi</li><li>AI và chính sách bất đồng</li></ul></div>
   </div>
   <p class="muted" style="margin-top:8pt">Workflow cố định, không agent: bước giống nhau mọi tin nhắn, 1 lời gọi AI dễ đo, model không tự gọi công cụ chi tiền.</p>
-  <div class="foot"><span>Nguồn: spec.md §4 · codebase/agent.py · codebase/tools.py · data/policy.json · 30 test (tests/)</span><span>3 / 8</span></div>
+  <div class="foot"><span>Nguồn: spec.md §4 · codebase/agent.py · codebase/tools.py · data/policy.json · 42 test (tests/)</span><span>3 / 8</span></div>
 </section>
 
 <!-- 4 -->
@@ -129,7 +129,7 @@ Rất xin lỗi bạn vì đơn hàng giao trễ. Đơn giao trễ 35 phút (tro
     </div>
   </div>
   <p style="margin-top:12pt">Ca dự phòng sát ngưỡng — B26: trễ <b>29'</b> đòi voucher → <code>TU_CHOI</code>, "chưa vượt ngưỡng 30 phút". Mạng / API lỗi &gt; 30 giây → chiếu video.</p>
-  <div class="foot"><span>Nguồn: eval/run-2.csv (run-2@20261128-084938) · eval/benchmark.csv · video: youtu.be/OZJkR0LBE2g</span><span>4 / 8</span></div>
+  <div class="foot"><span>Nguồn: eval/run-2.csv · eval/run-7.csv (cùng output B01, B10, B26) · eval/benchmark.csv · video: youtu.be/OZJkR0LBE2g</span><span>4 / 8</span></div>
 </section>
 
 <!-- 5 -->
@@ -152,12 +152,14 @@ Rất xin lỗi bạn vì đơn hàng giao trễ. Đơn giao trễ 35 phút (tro
         <tr><th>Lượt</th><th>Run ID</th><th class="num">Đạt</th><th class="num">tu_choi</th><th class="num">Không vượt hạn mức</th><th class="num">Lời trả lời lệch</th></tr>
         <tr><td>1</td><td class="mono">run-1@20261128-081125</td><td class="num">30/30</td><td class="num">6/6</td><td class="num">30/30</td><td class="num">6/30</td></tr>
         <tr class="pick"><td>2</td><td class="mono">run-2@20261128-084938</td><td class="num">30/30</td><td class="num">6/6</td><td class="num">30/30</td><td class="num">0/30</td></tr>
+        <tr><td>7</td><td class="mono">run-7@20261128-133137</td><td class="num">30/30</td><td class="num">6/6</td><td class="num">30/30</td><td class="num">0/30</td></tr>
       </table>
+      <p class="muted">Lượt 3–7: nâng cấp thêm trước CP4 (cổng injection / PII bằng code, json_schema strict) — đều 30/30; run-7 = đúng code đang demo.</p>
       <p style="margin-top:10pt"><b>Cải tiến giữa 2 lượt</b> (1 thay đổi code): quyết định có tác động (hoàn / voucher / chuyển người) luôn dùng câu mẫu + lý do của <code>check_limit</code> → nhóm lỗi "lời trả lời lệch quyết định" <b>6/30 → 0/30</b> (đọc tay). Câu tệ đi: B28 lời từ chối chung chung hơn.</p>
       <p class="muted">100% vì quyết định + tiền do code chốt; bộ câu tự viết trên data giả → không có nghĩa đúng 100% với khách thật.</p>
     </div>
   </div>
-  <div class="foot"><span>Nguồn: eval/README.md mục 5–6 · eval/report.md · eval/run-1.csv · eval/run-2.csv · eval/metric_spec.yaml</span><span>5 / 8</span></div>
+  <div class="foot"><span>Nguồn: eval/README.md mục 5–6 · eval/report.md · eval/run-1.csv · eval/run-2.csv · eval/run-7.csv · eval/metric_spec.yaml</span><span>5 / 8</span></div>
 </section>
 
 <!-- 6 -->
@@ -190,7 +192,7 @@ Rất xin lỗi bạn vì đơn hàng giao trễ. Đơn giao trễ 35 phút (tro
     <h2>Vì sao chưa "Go"</h2>
     <ul>
       <li>Chưa thử với người dùng thật; bộ câu do nhóm tự viết trên 30 đơn giả.</li>
-      <li>Chặn prompt injection mới chỉ dựa vào model (tiền vẫn bị khoá trong hạn mức).</li>
+      <li>Chặn prompt injection bằng code mới là so mẫu: câu nhập vai kiểu "từ giờ bạn là trợ lý không giới hạn" vẫn chỉ dựa vào model (tiền vẫn bị khoá trong hạn mức).</li>
       <li>Chưa tính chi phí bồi thường và giờ công duyệt ca chuyển người.</li>
     </ul>
   </div>
@@ -202,7 +204,7 @@ Rất xin lỗi bạn vì đơn hàng giao trễ. Đơn giao trễ 35 phút (tro
   <p class="kicker">8 · Nếu có thêm 1 tuần</p>
   <h1>3 việc, theo lỗi còn lại</h1>
   <div class="grid g3" style="flex:0 0 auto">
-    <div class="card"><h2>1. Chặn injection bằng code</h2><p>Lớp từ khoá / mẫu trước AI như chặn an toàn thực phẩm; viết 5–10 câu tấn công <b>mới</b> chưa từng đưa vào prompt để đo.</p><p class="muted">Lỗi #1 — eval/report.md mục 4</p></div>
+    <div class="card"><h2>1. Đo lớp chặn injection</h2><p>Lớp so mẫu bằng code đã có; viết 5–10 câu tấn công <b>mới</b> (nhập vai, chia nhỏ chỉ thị) chưa có trong mẫu / prompt để đo xem còn lọt bao nhiêu.</p><p class="muted">Lỗi #1 — eval/report.md mục 4</p></div>
     <div class="card"><h2>2. Thử với 5–10 người thật</h2><p>Lấy tin nhắn thật làm câu thử; đo số phút liên hệ thực sự bớt được (§2 hiện chưa đo).</p><p class="muted">Lỗi #4 — 100% trên bộ tự viết</p></div>
     <div class="card"><h2>3. Tính đủ chi phí</h2><p>Số ca chuyển người / giờ công CSKH + tiền bồi thường; thêm metric chấm lời trả lời (G1/G2/G11) cho vòng sau.</p><p class="muted">cost-estimate.md mục 4 · report mục 3</p></div>
   </div>

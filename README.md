@@ -1,6 +1,3 @@
-> Đây là khung repo nộp bài. Điền mọi chỗ `____`, giữ nguyên tên các mục. **Mục 0 xoá đi sau khi tạo repo xong.**
-> Giờ, mốc, luật, rubric: xem `README.md`, `02-guide.md`, `03-rubric.md` trong repo đề (bộ đề BTC phát).
-
 # RUA — Xử lý khiếu nại đơn giao đồ ăn bị trễ / kẹt quá giờ dự kiến
 
 **Thành viên, lớp, track:** xem [TEAMS.md](TEAMS.md). **Điền TEAMS.md đúng format**: khi chấm và đánh giá, BTC quét file này để ghép điểm cho từng người.
@@ -38,13 +35,14 @@ Gõ `dir` (Windows) hoặc `ls` (macOS / Linux): thấy `run.py` và `README.md`
 | Việc | Windows (PowerShell) | macOS / Linux |
 |---|---|---|
 | Kiểm Python | `python --version` (không được thì `py --version`) | `python3 --version` |
-| Chạy bản chạy thử (chế độ giả, chưa gọi model) | `python run.py` | `python3 run.py` |
+| Chạy bản chạy thử (dòng lệnh; chưa có `.env` thì chạy chế độ giả) | `python run.py` | `python3 run.py` |
+| Chạy web demo (giao diện chat, mở http://127.0.0.1:8000) | `python codebase/web_demo.py` | `python3 codebase/web_demo.py` |
 | Kiểm bộ câu thử | `python run.py check` | `python3 run.py check` |
 | Tạo file `.env` để nối model | `copy .env.example .env` | `cp .env.example .env` |
 
 - Windows: gõ `python` mà mở Microsoft Store hoặc báo không có lệnh → dùng `py`. Chưa có Python: cài từ python.org, **tick "Add python.exe to PATH"**, mở lại PowerShell.
 - macOS: báo `command not found: python` là bình thường → dùng `python3`.
-- `python run.py` in ra "[câu trả lời giả — chưa nối model] …" là khung chạy đúng. Nối model thật: [docs/connect-model.md](docs/connect-model.md).
+- Chưa có `.env`: `python run.py` chạy **chế độ giả** (0 token, luôn ra `CHUYEN_NV`) — khung chạy đúng nhưng chưa gọi AI. Bản demo của nhóm gọi **AI thật** `gpt-4o-mini`: chép `.env.example` thành `.env`, điền `MODEL_PROVIDER=openai` + key của bạn ([docs/connect-model.md](docs/connect-model.md)). Key không commit.
 
 Trong README này lệnh viết là `python …`; máy nhóm cần `python3` hay `py` thì gõ thay.
 
@@ -53,6 +51,9 @@ Trong README này lệnh viết là `python …`; máy nhóm cần `python3` hay
 | Lệnh | Làm gì |
 |---|---|
 | `python run.py` | Chạy bản chạy thử (gõ đầu vào, nhận kết quả, kèm số lần gọi model / token) |
+| `python codebase/web_demo.py` | **Web demo** (chỉ thư viện chuẩn): chat theo phiên, thẻ quyết định, hàng chờ bản nháp `CS-…`, nút "Làm mới phiên". Chỉ nghe `127.0.0.1:8000`, gọi cùng `answer()` với `python run.py` |
+| `python -m unittest discover -s tests` | 42 test (model giả, không tốn token) |
+| `python eval/grade_run.py eval/run-N.csv` | Điền cột `pass` theo 3 metric (code) rồi in kết quả; giữ điểm chấm tay |
 | `python run.py check` | Kiểm `eval/benchmark.csv` (6 cột, số câu, `kho` / `tu_choi`, mã `source`, ô trống, dòng mẫu) `eval/metric_spec.yaml` (≥3 metric điền đủ) và `TEAMS.md` (đúng format để BTC quét). Chỉ cảnh báo, không sửa file |
 | `python run.py eval --try` | **Thử nối model:** chạy 3 câu đầu (`--try 5` = 5 câu) → `eval/run-try.csv`. Thấy "Nối model được" là xong. Không tính là một lượt |
 | `python run.py eval` | Chạy cả bộ qua `codebase/agent.py` → `eval/run-1.csv` (lần sau `run-2.csv`…) + `traces/run-1.jsonl`. Mỗi dòng có run ID, model, số lần gọi model / công cụ, token. Model còn giả → chỉ ghi `run-mock.csv`; mọi câu lỗi → `run-error.csv`; Ctrl+C → `run-stopped.csv` — đều **không** được đánh số |
@@ -128,5 +129,5 @@ Khánh dùng **Claude Code** (coding agent, đọc `AGENTS.md`) để review ch�
 | 4 | Bản chạy thử làm trọn lát cắt | `codebase/` · lệnh ở mục "Lệnh" |
 | 5 | Định nghĩa "tốt" + bộ câu thử | `data/DATA_CARD.md` · `eval/` |
 | 6 | Mô phỏng chi phí khi dùng thật | `cost/` |
-| 7 | Slide + demo + video dự phòng | [`demo-slides.pdf`](demo-slides.pdf) (8 trang, nguồn `slides/demo-slides.html`) · link video (CP3, 30s, AI thật): https://youtu.be/OZJkR0LBE2g · video dự phòng CP4 (1–2 phút): ____ |
+| 7 | Slide + demo + video dự phòng | [`demo-slides.pdf`](demo-slides.pdf) (8 trang, nguồn `slides/demo-slides.html`) · video demo / dự phòng (thao tác thật, AI thật): https://youtu.be/OZJkR0LBE2g — quay ở CP3 bằng giao diện dòng lệnh; dùng làm video dự phòng CP4 |
 | + | *Bonus:* người dùng thử | `validation/log.md` |
