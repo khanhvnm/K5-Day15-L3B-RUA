@@ -428,10 +428,10 @@ Thứ tự: 17:00–17:20 cả nhóm chốt policy + schema dữ liệu (mục 0
   5. `spec.md` §8, §9 đủ; README "Dùng AI vào việc gì" + `docs/ai-usage.md` (mỗi người gửi Khánh 1 dòng).
   6. 14:15 freeze → nộp CP4 (tick 7 hạng mục, lượt 1 → 2, chi phí/task thành công + tên model, link slide + video).
 - **Checklist output (= 4 điều kiện cứng xét giải):**
-  - [ ] Bản chạy thử gọi AI thật (video chứng minh)
-  - [ ] Bằng chứng pain ≥1 nguồn đạt ngưỡng + ≥5 trích dẫn
-  - [ ] ≥20 câu thử + `run-N.csv` đã chấm có %
-  - [ ] `demo-slides.pdf` trong repo
+  - [x] Bản chạy thử gọi AI thật (video chứng minh) *(https://youtu.be/OZJkR0LBE2g · `run-1`, `run-2` model `gpt-4o-mini`)*
+  - [x] Bằng chứng pain ≥1 nguồn đạt ngưỡng + ≥5 trích dẫn *(review 143/300 · khảo sát 20/23 · 8 trích dẫn)*
+  - [x] ≥20 câu thử + `run-N.csv` đã chấm có % *(30 câu · run-1, run-2 30/30)*
+  - [x] `demo-slides.pdf` trong repo *(8 trang, nguồn `slides/demo-slides.html`)*
   - [ ] Video dự phòng mở được ở tab ẩn danh
 
 ### CP4-5 · *(Bonus +5)* Người dùng thử — **Khánh + Việt Anh**
@@ -451,7 +451,7 @@ Thứ tự: 17:00–17:20 cả nhóm chốt policy + schema dữ liệu (mục 0
   - **Slide:** soát **từng số** trên 8 trang với file nguồn.
 - **Checklist output:**
   - [ ] Mọi PR CP4 đã review và đã merge trước 14:15
-  - [ ] Bảng đối chiếu số slide ↔ file nguồn không còn dòng lệch
+  - [x] Bảng đối chiếu số slide ↔ file nguồn không còn dòng lệch *(`slides/outline.md`, 11 dòng)*
   - [ ] Đã tick đủ 4 điều kiện cứng xét giải
 
 ### Tập demo (13:30–14:00, cả nhóm)
