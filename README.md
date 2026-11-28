@@ -126,5 +126,5 @@ Khánh dùng **Claude Code** (coding agent, đọc `AGENTS.md`) để review ch�
 | 4 | Bản chạy thử làm trọn lát cắt | `codebase/` · lệnh ở mục "Lệnh" |
 | 5 | Định nghĩa "tốt" + bộ câu thử | `data/DATA_CARD.md` · `eval/` |
 | 6 | Mô phỏng chi phí khi dùng thật | `cost/` |
-| 7 | Slide + demo + video dự phòng | slide trong repo (PDF, PPTX, HTML…) hoặc link slide ở form CP4 · link video: ____ |
+| 7 | Slide + demo + video dự phòng | slide trong repo (PDF, PPTX, HTML…) hoặc link slide ở form CP4 · link video (CP3, 30s, AI thật): https://youtu.be/OZJkR0LBE2g |
 | + | *Bonus:* người dùng thử | `validation/log.md` |
