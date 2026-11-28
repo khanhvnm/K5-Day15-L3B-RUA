@@ -125,5 +125,32 @@ class TestCP3P1Fixes(unittest.TestCase):
         self.assertIn("QUYET_DINH=HUY_HOAN | SO_TIEN=110000 | MA_CA=-", out_cant_cancel.splitlines()[0])
 
 
+class TestCP3CancelNegation(unittest.TestCase):
+    """Phủ định hủy/hoàn tiền — review CP3-1: "ok hủy" từng bị hiểu là "không hủy"."""
+
+    ORDER_NO_DRIVER = {"status": "waiting_driver", "driver_status": "none"}
+
+    def test_doi_huy_hoac_hoan(self):
+        for msg in (
+            "ok hủy đơn giúp mình",
+            "Ok hủy luôn đi",
+            "ok hoàn tiền cho mình",
+            "sao vẫn chưa hoàn tiền cho tôi",
+            "không hủy được đơn, hủy giúp tôi",
+            "sao chưa hủy cho tôi",
+        ):
+            self.assertTrue(agent._wants_cancel(msg, self.ORDER_NO_DRIVER), msg)
+
+    def test_phu_dinh_huy(self):
+        for msg in (
+            "chưa hủy đâu, cứ giao tiếp",
+            "khong huy don nhe",
+            "k hủy nhé, cho voucher",
+            "đừng có hủy nha",
+            "không muốn hoàn tiền, giao tiếp đi",
+        ):
+            self.assertFalse(agent._wants_cancel(msg, self.ORDER_NO_DRIVER), msg)
+
+
 if __name__ == "__main__":
     unittest.main()
