@@ -46,5 +46,15 @@ Nguyên nhân chung: 6 câu này model tự viết lời trả lời; code chỉ
 
 ## 4. Còn lại
 
-- Lỗi chưa sửa + nguy hiểm thế nào: __
-- Nếu có thêm 1 tuần: __
+- Lỗi chưa sửa + nguy hiểm thế nào (xếp theo mức hại cho khách / công ty; mục 1–2 đã thử bằng code ngày 28/11):
+  1. **Phát hiện prompt injection chỉ dựa vào model.** Code không có lớp chặn riêng, chỉ có prompt `SYSTEM` và việc xoá thẻ phân cách giả trong tin nhắn. B13 và B28 đạt ở cả 2 lượt, nhưng một cách viết khác có thể khiến model gán `IN_SCOPE`. Khi đó `check_limit` vẫn giữ tiền **trong hạn mức** (không thể vượt 300.000đ / 30.000đ), nhưng đơn đủ điều kiện sẽ được hoàn hoặc bù, trái `policy.json` mục 2 (injection → `TU_CHOI`). Hại: công ty mất tiền ở mức trần, không mất vô hạn.
+  2. **Nhận diện "đòi hủy" bằng từ khoá còn sót.** *"sao vẫn chưa hủy đơn"* và *"thôi khỏi giao nữa"* không được nhận là đòi hủy, nên rơi vào nhánh than trễ và khách nhận `TU_CHOI` / `VOUCHER` thay vì `HUY_HOAN`. Lệch theo chiều an toàn (không tự hủy đơn khách không đòi), nhưng khách đúng là đang muốn hủy thì phải nhắn lại. Hai câu này không có trong bộ 30 câu.
+  3. **`TU_CHOI` / `HOI_LAI` vẫn do model viết.** Câu chữ dao động giữa 2 lượt dù `temperature=0` (B28 lượt 2 chung chung hơn). Nếu model nói "đã hoàn" hoặc hứa tiền thì code chặn được, còn câu nhạt hoặc thiếu lý do thì chưa có gì bắt.
+  4. **Con số 100% không có nghĩa là đúng 100% với khách thật.** Bộ 30 câu do nhóm tự viết (11 câu viết lại từ review thật) trên 30 đơn giả; mỗi câu chỉ một tin nhắn; chưa có người dùng thật thử. 3 metric chỉ đo dòng quyết định, chất lượng lời trả lời phải đọc tay.
+  5. **Không nhớ hội thoại, không có đường "khiếu nại lại".** Mỗi tin nhắn xử lý độc lập. Khách không đồng ý với `TU_CHOI` thì chưa có cách tự chuyển nhân viên (`spec.md` §6). Bồi thường trùng chỉ chặn được qua `status=cancelled`, vì data không có lịch sử bồi thường theo đơn.
+- Nếu có thêm 1 tuần:
+  - Thêm **lớp chặn injection bằng code** trước AI (giống chặn an toàn thực phẩm), viết thêm 5–10 câu tấn công mới **chưa từng đưa vào prompt** để đo.
+  - Mở rộng nhận diện "đòi hủy" và thêm câu thử cho các cách nói còn sót ở mục 2.
+  - Thêm **metric thứ 4 cho lời trả lời** (code kiểm "phiếu nháp" + có số phút/ngưỡng + không bảo khách tự liên hệ). Không thêm được vào lần này vì `metric_spec.yaml` đã khoá sau CP2. Dùng cho vòng sau, chấm lại cả `run-1`, `run-2` để so.
+  - Thử với **5–10 người dùng thật** (ghi `validation/log.md`), lấy tin nhắn thật làm câu thử thay cho câu tự viết; đo số phút liên hệ thực sự bớt được (`spec.md` §2 hiện chưa đo).
+  - Nối lịch sử bồi thường theo đơn và cho khách bấm "chuyển nhân viên" sau `TU_CHOI`.

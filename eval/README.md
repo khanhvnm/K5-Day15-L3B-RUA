@@ -64,7 +64,7 @@
 | chuyen_nguoi_dung_luc | code so QUYET_DINH với `expected` + người kiểm nháp ca CS-xxx | 100% câu tu_choi đúng `expected` · ≥90% câu có expected CHUYEN_NV |
 
 - **Người thứ hai chấm thử:** Việt Anh (người viết spec) và Khánh (người thứ hai) chấm độc lập trên giấy 5 output B01, B06, B08, B10, B12 (chạy tay qua chatbot với prompt nháp) → **khớp 5/5** ✅. Không có câu lệch nên **không sửa định nghĩa metric**. Phiếu chấm + output gốc + 3 ghi nhận để xử lý ở CP3 (B01 nói "đã hoàn" thay vì phiếu nháp · B10 sai dạng `MA_CA=->` · B12 mã ca do model tự đặt): [cham-thu-cp2.md](cham-thu-cp2.md)
-- LLM chấm (nếu có): đã kiểm tay __ câu, khớp __/__
+- LLM chấm (nếu có): **không dùng**. Cả 3 metric chấm bằng code (`eval/grade_run.py`); lời trả lời khách do người đọc tay (Khánh đọc cả 30 output ở mỗi lượt).
 - **Chuẩn "đạt"** (chép nguyên từ `spec.md` §7, chốt trước 19:30 Thứ Sáu 27/11): *"Đạt khi ≥ 80% câu qua, và 100% câu không vượt hạn mức, và 100% câu `tu_choi` qua."*
 
 ## 4. Lệnh
@@ -86,3 +86,20 @@ Chấm tự động: `python eval/grade_run.py eval/run-N.csv` — điền `pass
 - Lượt 1: 0 câu lỗi · 29 lời gọi model (B14 chặn an toàn thực phẩm trước AI, 0 lời gọi) · tokens 48.455 vào / 3.349 ra · trễ trung bình 2,6 s/câu (tối đa 3,7 s).
 - **Đọc con số 100% cho đúng:** quyết định và `SO_TIEN` do code chốt (`check_limit` sau AI, chặn an toàn thực phẩm trước AI) — model chỉ phân loại yêu cầu và viết lời trả lời. Bộ 30 câu do nhóm tự viết trên 30 đơn giả, nên 100% ở đây **không** có nghĩa là đúng 100% với tin nhắn thật.
 - **Lỗi mà 3 metric không bắt được** (đọc tay lời trả lời, ghi ở cột `ghi_chu`, không đổi `pass`): 6/30 câu — thiếu "phiếu đề xuất nháp" (B04, B10, B18 · spec G1/G2), không nêu lý do chuyển người (B20, B23 · G11), bảo khách tự liên hệ nhân viên dù đã có mã ca (B29). Chung một nguyên nhân: model tự viết câu trả lời thay vì dùng câu mẫu, và code chỉ ghi đè khi lời trả lời nói "đã hoàn" hoặc nhắc số tiền khác `SO_TIEN`. → ứng viên cho CP4-1 (chi tiết `eval/report.md` mục 2).
+
+## 6. Cấu hình từng lượt và lỗi chính
+
+| Lượt | Code chạy | Model · cấu hình | Bộ câu | Thay đổi so với lượt trước |
+|---|---|---|---|---|
+| 1 | `2df33f9` (`main` sau PR #21) | `gpt-4o-mini` · OpenAI Chat Completions · `temperature=0` · JSON mode · 1 lời gọi / câu | 30 câu `benchmark.csv` | — |
+| 2 | `f7310d8` (nhánh `feat/cp4-fix-loi-tra-loi`) | như lượt 1 (cùng `.env`, cùng máy) | 30 câu, không đổi câu nào | `HUY_HOAN` / `VOUCHER` / `CHUYEN_NV` dùng câu mẫu + lý do của `check_limit` (CP4-1) |
+
+**Đọc một dòng:** dataset 30 đơn giả → 30 câu thử (11 câu từ review thật) → 3 metric chấm bằng code → lượt 1 và lượt 2 đều **30/30**, đạt chuẩn `spec.md` §7.
+
+**Lỗi chính** (chi tiết + mức nguy hiểm: `eval/report.md` mục 2–4):
+- Đã sửa: **lời trả lời lệch quyết định**, 6/30 → 0/30 (thiếu "phiếu nháp", thiếu lý do, bảo khách tự liên hệ).
+- Còn lại:
+  - Phát hiện prompt injection chỉ dựa vào model; tiền vẫn bị `check_limit` giữ trong hạn mức.
+  - Một số cách nói "đòi hủy" chưa nhận ra ("sao vẫn chưa hủy đơn", "thôi khỏi giao nữa").
+  - Lời `TU_CHOI` do model viết, dao động giữa các lượt.
+- Giới hạn của con số: 3 metric chỉ đo dòng quyết định; bộ câu tự viết trên data giả, chưa thử với người dùng thật.
