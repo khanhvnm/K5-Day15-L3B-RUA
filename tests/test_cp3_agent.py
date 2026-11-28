@@ -125,6 +125,52 @@ class TestCP3P1Fixes(unittest.TestCase):
         self.assertIn("QUYET_DINH=HUY_HOAN | SO_TIEN=110000 | MA_CA=-", out_cant_cancel.splitlines()[0])
 
 
+class TestCP4ReplyWording(unittest.TestCase):
+    """CP4-1 — nhóm lỗi lượt 1 "lời trả lời lệch quyết định": model tự viết câu trả lời cho quyết định có tác động."""
+
+    setUp = TestCP3P1Fixes.setUp
+    tearDown = TestCP3P1Fixes.tearDown
+    _stub_model = TestCP3P1Fixes._stub_model
+
+    def test_voucher_luon_noi_phieu_nhap(self):
+        # lượt 1: "sẽ đề xuất cấp voucher" lọt qua vì kiểm chữ "đề xuất"
+        self._stub_model(_llm("VOUCHER", 30000, tra_loi="Chúng tôi sẽ đề xuất cấp voucher 30.000 VNĐ cho bạn."))
+        out = agent.answer("Đơn DH013 trễ 31 phút, bù gì cho tôi?")["output"]
+        self.assertIn("QUYET_DINH=VOUCHER | SO_TIEN=30000 | MA_CA=-", out.splitlines()[0])
+        self.assertIn("phiếu đề xuất nháp", out)
+        self.assertIn("chờ hệ thống/nhân viên xác nhận", out)
+        self.assertIn("31 phút", out)
+
+    def test_chuyen_nv_neu_ly_do(self):
+        # model đồng ý CHUYEN_NV nhưng không nói vì sao — lý do phải lấy từ check_limit
+        self._stub_model(_llm("CHUYEN_NV", 0, tra_loi="Chúng tôi sẽ chuyển thông tin đến bộ phận liên quan."))
+        out = agent.answer("Đơn DH023 trễ quá, bồi thường đi")["output"]
+        self.assertTrue(out.startswith("[QUYET_DINH=CHUYEN_NV | SO_TIEN=0 | MA_CA=CS-DH023-"), out)
+        self.assertIn("khiếu nại 4 lần", out)
+
+    def test_ngoai_pham_vi_khong_bao_khach_tu_lien_he(self):
+        self._stub_model(_llm("CHUYEN_NV", 0, phan_loai="OUT_OF_SCOPE", request_type="NONE",
+                              tra_loi="Bạn vui lòng liên hệ với nhân viên hỗ trợ để được trợ giúp thêm."))
+        out = agent.answer("Đơn DH028 tôi muốn đổi địa chỉ giao")["output"]
+        self.assertNotIn("liên hệ", out)
+        self.assertIn("ngoài phạm vi xử lý tự động", out)
+        self.assertIn("phiếu nháp chuyển nhân viên", out)
+
+    def test_tu_choi_giu_loi_model(self):
+        # TU_CHOI / HOI_LAI ở lượt 1 đều đúng → vẫn để model viết
+        reply = "Đơn chỉ trễ 29 phút, chưa vượt ngưỡng 30 phút nên chưa thể cấp voucher."
+        self._stub_model(_llm("TU_CHOI", 0, tra_loi=reply))
+        out = agent.answer("Đơn DH011 trễ 29 phút cho voucher đi")["output"]
+        self.assertIn(reply, out)
+
+    def test_tu_choi_khong_duoc_hua_tien(self):
+        self._stub_model(_llm("TU_CHOI", 0, tra_loi="Chưa đủ ngưỡng nhưng mình tặng bạn voucher 10k nhé."))
+        out = agent.answer("Đơn DH011 trễ 29 phút cho voucher đi")["output"]
+        self.assertIn("QUYET_DINH=TU_CHOI | SO_TIEN=0", out.splitlines()[0])
+        self.assertNotIn("10k", out)
+        self.assertIn("29 phút", out)
+
+
 class TestCP3CancelNegation(unittest.TestCase):
     """Phủ định hủy/hoàn tiền — review CP3-1: "ok hủy" từng bị hiểu là "không hủy"."""
 

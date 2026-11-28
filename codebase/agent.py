@@ -60,6 +60,8 @@ _PAREN_CASE_ID_RE = re.compile(r"\(\s*[^()]*\bCS-[A-Za-z0-9-]+\b[^()]*\)", re.IG
 _BARE_CASE_ID_RE = re.compile(r"(?:với\s+)?(?:mã\s*ca(?:\s+hỗ\s*trợ)?\s*:?\s*)?\bCS-[A-Za-z0-9-]+\b", re.IGNORECASE)
 _REQUIRED_KEYS = ("phan_loai", "quyet_dinh", "so_tien")
 _DECISIONS = ("HUY_HOAN", "VOUCHER", "HOI_LAI", "CHUYEN_NV", "TU_CHOI")
+# Quyết định có tác động ra ngoài: lời trả lời do code viết (câu mẫu + lý do check_limit), không để model viết
+_CODE_WORDED_DECISIONS = ("HUY_HOAN", "VOUCHER", "CHUYEN_NV")
 
 # Từ khóa dương tính giả cần loại bỏ trước khi quét dấu hiệu an toàn thực phẩm
 _FOOD_FALSE_POSITIVES = (
@@ -365,12 +367,13 @@ def answer(text: str) -> dict:
         ma_ca = esc["ma_ca"]
         if llm_decision != final_decision or raw_amount != final_amount or not tra_loi_khach:
             note(f"gate ghi đè OUT_OF_SCOPE: {llm_decision}/{raw_amount} -> {final_decision}/0")
-            tra_loi_khach = _render_template(
-                final_decision,
-                0,
-                ma_ca,
-                "Yêu cầu nằm ngoài phạm vi xử lý tự động của trợ lý (thiếu/sai món, đổi địa chỉ hoặc khiếu nại tài xế)",
-            )
+        # CP4-1: luôn dùng câu mẫu — lượt 1 model tự viết "bạn vui lòng liên hệ nhân viên" dù đã có mã ca
+        tra_loi_khach = _render_template(
+            final_decision,
+            0,
+            ma_ca,
+            "Yêu cầu nằm ngoài phạm vi xử lý tự động của trợ lý (thiếu/sai món, đổi địa chỉ hoặc khiếu nại tài xế)",
+        )
     elif phan_loai == "SECURITY_PII":
         final_decision = "TU_CHOI"
         final_amount = 0
@@ -428,12 +431,16 @@ def answer(text: str) -> dict:
                 f"check_limit ghi đè: {llm_decision}/{raw_amount} -> {final_decision}/{final_amount} ({gate['rule_id']})"
             )
             tra_loi_khach = _render_template(final_decision, final_amount, ma_ca, ly_do_gate)
-        elif final_decision in ("HUY_HOAN", "VOUCHER"):
-            low_reply = tra_loi_khach.lower()
-            has_draft = ("nháp" in low_reply) or ("đề xuất" in low_reply)
-            if not has_draft or _DONE_CLAIM_RE.search(low_reply) or _mentions_other_amount(low_reply, final_amount):
-                note("ghi đè câu trả lời: thiếu nháp / nói đã hoàn tất / nhắc số tiền khác SO_TIEN")
-                tra_loi_khach = _render_template(final_decision, final_amount, ma_ca, ly_do_gate)
+        elif final_decision in _CODE_WORDED_DECISIONS:
+            # CP4-1: quyết định có tác động (chi tiền / chuyển người) luôn dùng câu mẫu + lý do của check_limit.
+            # Lượt 1: model viết "sẽ đề xuất cấp voucher" (không nói phiếu nháp chờ xác nhận) hoặc chuyển người
+            # mà không nêu lý do — kiểm từ khoá không đủ (chữ "đề xuất" đã lọt qua).
+            note(f"câu mẫu cho {final_decision}: lý do lấy từ check_limit ({gate['rule_id']})")
+            tra_loi_khach = _render_template(final_decision, final_amount, ma_ca, ly_do_gate)
+        elif _DONE_CLAIM_RE.search(tra_loi_khach.lower()) or _mentions_other_amount(tra_loi_khach.lower(), final_amount):
+            # TU_CHOI vẫn để model viết, nhưng không được nói "đã hoàn" hay hứa một số tiền
+            note("ghi đè câu trả lời TU_CHOI: nói đã hoàn tất / nhắc số tiền")
+            tra_loi_khach = _render_template(final_decision, final_amount, ma_ca, ly_do_gate)
 
     tra_loi_khach = _reconcile_case_ids(tra_loi_khach, final_decision, ma_ca)
     if final_decision == "CHUYEN_NV" and ma_ca not in tra_loi_khach:
