@@ -96,6 +96,8 @@ Nhóm dùng stack khác (Node, Streamlit, notebook…): sửa hàm `run_app()` t
 
 Khánh dùng **Claude Code** (coding agent, đọc `AGENTS.md`) để review chéo các PR CP2 (data, bằng chứng, câu thử, code agent) bằng cách tự chạy lệnh / test, sửa lỗi tìm được, viết `tests/test_cp2_agent.py`, soạn §4–§5 `spec.md`, bộ câu hỏi khảo sát và phiếu chấm thử. Người kiểm: Khánh đọc và duyệt từng commit trước khi merge; mã đơn / số phút / số tiền của câu thử được tính tay lại từ `data/` (B01, B02, B12); kết quả chấm thử 5 output do Việt Anh và Khánh tự chấm trên giấy, không do AI chấm. Phần dùng AI của từng thành viên khác: tự khai ở `docs/ai-usage.md`.
 
+**CP3–CP4:** Claude Code review các PR CP3-1 → CP4-3: sửa regex phủ định hủy và `eval/grade_run.py`, đối chiếu lại nguồn báo trong `evidence/summary.md`, viết cải tiến CP4-1 (câu mẫu cho quyết định có tác động), soạn `spec.md` §0–§9, `cost/cost-estimate.md` và slide `demo-slides.pdf`. Người kiểm: cả nhóm xem trên máy Khánh. Mọi số trên slide đối chiếu với file nguồn (`slides/outline.md`); số khảo sát và impact tính lại bằng script, không lấy từ AI. Các lượt `eval` / `simulate` chạy thật, không sửa kết quả.
+
 ## File mẫu — điền ở bước nào
 
 | File | Điền ở bước guide | Mốc |
@@ -126,5 +128,5 @@ Khánh dùng **Claude Code** (coding agent, đọc `AGENTS.md`) để review ch�
 | 4 | Bản chạy thử làm trọn lát cắt | `codebase/` · lệnh ở mục "Lệnh" |
 | 5 | Định nghĩa "tốt" + bộ câu thử | `data/DATA_CARD.md` · `eval/` |
 | 6 | Mô phỏng chi phí khi dùng thật | `cost/` |
-| 7 | Slide + demo + video dự phòng | slide trong repo (PDF, PPTX, HTML…) hoặc link slide ở form CP4 · link video (CP3, 30s, AI thật): https://youtu.be/OZJkR0LBE2g |
+| 7 | Slide + demo + video dự phòng | [`demo-slides.pdf`](demo-slides.pdf) (8 trang, nguồn `slides/demo-slides.html`) · link video (CP3, 30s, AI thật): https://youtu.be/OZJkR0LBE2g · video dự phòng CP4 (1–2 phút): ____ |
 | + | *Bonus:* người dùng thử | `validation/log.md` |

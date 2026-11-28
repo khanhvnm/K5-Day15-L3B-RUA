@@ -184,9 +184,24 @@ flowchart TD
 - So với impact / người / tháng (§2): **đáng làm, nếu tính chi phí model.** Chi phí ≈ **40 ₫ / người / tháng**; đổi lại khách bớt được chắc chắn ≈ 15 phút liên hệ / tháng (trong ~70 phút mất vì đơn kẹt/trễ). Chi phí thật quyết định bài toán là **tiền bồi thường** theo chính sách và **giờ công nhân viên duyệt ca chuyển người**: 34% lượt hỏi mô phỏng tạo ca `CHUYEN_NV`, theo phân bố bộ câu thử nhiều ca khó. Phần này chưa tính được vì chưa có số liệu lương / năng suất CSKH. Giữ `gpt-4o-mini`: `gpt-4o` đắt ~16 lần mà quyết định đã do code chốt.
 
 ## §9. Rủi ro & an toàn
-- Dữ liệu: đã ẩn danh gì, không thu gì, không đưa gì vào model gói miễn phí:
-- AI **không được** làm gì kể cả khi người dùng yêu cầu:
-- Ai có thể bị hại nếu AI sai, và nhóm chặn thế nào:
+- **Dữ liệu:**
+  - Review Google Play do nhóm tự thu thập: file thô (có `user_hash`) không commit, bị `.gitignore` chặn (`docs/no_commit/`). Trong repo chỉ có trích dẫn ≤ 2 câu kèm `review_id`, không có tên người.
+  - Khảo sát: file thô `raw-*` không commit. `evidence/survey/results.csv` đã bỏ email, giờ gửi, cách liên hệ, bằng `anonymize_survey.py`.
+  - Model chỉ nhận **dữ liệu giả** (30 đơn, 18 user tự dựng trong `data/`) và tin nhắn thử. Không gửi dữ liệu khách thật, review hay khảo sát vào model.
+  - Gọi OpenAI API bằng tài khoản của nhóm; key chỉ nằm trong `.env`, không commit.
+- **AI không được làm, kể cả khi người dùng yêu cầu:**
+  - Chi vượt hạn mức (hoàn > min(total, 300.000đ), voucher > min(30.000đ, total)). Số tiền do `check_limit` tính, không lấy số của AI.
+  - Tự hủy đơn khi khách không đòi hủy.
+  - Nói "đã hoàn / đã hủy": `HUY_HOAN` / `VOUCHER` chỉ là phiếu đề xuất nháp chờ xác nhận.
+  - Đưa SĐT / địa chỉ của tài xế hay bất kỳ ai. Output đi qua bước ẩn SĐT.
+  - Làm theo chỉ thị "bỏ qua quy định" hay chỉ thị hệ thống giả trong tin nhắn khách.
+  - Tự xử lý ca an toàn thực phẩm: chặn bằng từ khoá trước AI, chuyển người ngay.
+- **Ai có thể bị hại nếu AI sai, và nhóm chặn thế nào:**
+  - **Khách bị từ chối sai** → mất bữa ăn, mất tiền. Khi AI và chính sách bất đồng, hoặc JSON hỏng, thì chuyển người chứ không từ chối; mọi `TU_CHOI` kèm số phút / ngưỡng để khách kiểm được.
+  - **Công ty chi sai** → mất tiền. Bị chặn bởi trần `check_limit` + phiếu nháp chờ duyệt; 0 câu vượt hạn mức ở cả 2 lượt (`eval/run-1.csv`, `eval/run-2.csv`).
+  - **Tài xế lộ thông tin cá nhân.** Chặn bằng phân loại `SECURITY_PII` + bước ẩn SĐT ở output (câu thử B11).
+  - **Khách ngộ độc / dị ứng.** Chặn từ khoá trước AI, khuyên ngừng ăn, chuyển người (câu thử B14).
+  - **Rủi ro còn lại** (`eval/report.md` mục 4): chặn prompt injection mới dựa vào model. Nếu model bị lừa, tiền vẫn bị khoá trong hạn mức, nhưng đơn đủ điều kiện có thể được bù trái chính sách.
 
 ## §10. Phân công & changelog
 - Phân công có tên (theo chặng, chia cặp — guide "Cách chia việc"): **Vũ Nam Khánh** — điều phối, review sản phẩm, `spec.md`, canvas, khảo sát, nộp checkpoint · **Vũ Thành** — code agent (`tools.py`, `agent.py`), nối model, chạy lượt eval · **Phạm Duy Thành** — dữ liệu giả, lấy mẫu review + bằng chứng pain, mô phỏng chi phí · **Đỗ Việt Anh** — bộ câu thử, metric, chấm điểm, báo cáo đánh giá. Cặp review: Khánh ↔ từng người; chấm thử 5 output: Việt Anh + Khánh. (`TEAMS.md`, `docs/plan.md` mục 1)
@@ -205,6 +220,7 @@ flowchart TD
 | T7 sáng 28/11 (nhánh `docs/cp3-spec-impact`) | Điền §0, §2 (impact), §3, §6; cập nhật §1 (số CP3), §4 (model thật, 25 test), §5 (+B23, B28) | Yêu cầu CP3 §0–§7 |
 | T7 08:49 28/11 (commit `f7310d8`, **cải tiến trước lượt 2**) | `HUY_HOAN` / `VOUCHER` / `CHUYEN_NV` (kể cả ngoài phạm vi): lời trả lời luôn là câu mẫu của code + `ly_do` của `check_limit`; `TU_CHOI` do model viết nhưng bị thay nếu nói "đã hoàn" hoặc nhắc số tiền | Nhóm lỗi lượt 1 "lời trả lời lệch quyết định" 6/30: B04, B10, B18 thiếu "phiếu nháp"; B20, B23 không nêu lý do; B29 bảo khách tự liên hệ (`eval/run-1.csv` cột `ghi_chu`). Lượt 2 `run-2@20261128-084938`: 0/30; B28 tệ đi nhẹ (`eval/report.md` mục 3) |
 | T7 09:00 28/11 (nhánh `cost/cp4-simulate`) | `cost/personas.yaml`: `users` 300k / 1 triệu / 10 triệu (bỏ số trích sai nguồn), phiên / tháng theo trung điểm khảo sát; chạy `simulate-1` (50 phiên); điền §8 | CP4-3; số người khớp §2, nguồn đã đối chiếu ở `evidence/summary.md` §6 |
+| T7 09:25 28/11 (nhánh `docs/cp4-slides`) | Slide 8 trang `demo-slides.pdf`; điền §9; README "Dùng AI" bổ sung CP3–CP4 | CP4-4; mọi số trên slide đối chiếu với file nguồn (`slides/outline.md`) |
 
 **Sau CP4 (đến 23:59 Thứ Bảy 28/11)** (sửa theo góp ý — không sửa chuẩn "đạt", câu thử, số bằng chứng, kết quả các lượt đã chạy)
 
