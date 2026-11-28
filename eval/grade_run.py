@@ -29,7 +29,9 @@ POLICY = os.path.join(ROOT, "data", "policy.json")
 ORDERS = os.path.join(ROOT, "data", "orders.json")
 BENCH = os.path.join(ROOT, "eval", "benchmark.csv")
 
-DECISION_RE = re.compile(r"\[QUYET_DINH\s*=\s*([A-Z_]+)\s*\|\s*SO_TIEN\s*=\s*([\d.,]+)\s*(?:\|\s*MA_CA\s*=\s*(CS-[A-Za-z0-9-]+))?\s*\]")
+# MA_CA là "CS-…" khi CHUYEN_NV, còn lại "-" (quy ước eval/README.md mục 2) — phải nhận cả hai
+DECISION_RE = re.compile(
+    r"\[QUYET_DINH\s*=\s*([A-Z_]+)\s*\|\s*SO_TIEN\s*=\s*([\d.,]+)\s*(?:\|\s*MA_CA\s*=\s*([^\]|\s]*))?\s*\]")
 COND_RE = re.compile(r"SO_TIEN\s*(<=|=)\s*(\d+)")
 NEEDS_MA_CA = {"CHUYEN_NV"}
 
@@ -50,15 +52,36 @@ def parse_amount(s):
     return int(re.sub(r"[.,]", "", s))
 
 
+def parse_decision(output):
+    """Tách dòng quyết định ở DÒNG ĐẦU output → (QUYET_DINH, SO_TIEN, MA_CA) hoặc None."""
+    lines = [ln for ln in (output or "").splitlines() if ln.strip()]
+    m = DECISION_RE.match(lines[0].strip()) if lines else None
+    if not m:
+        return None
+    return m.group(1), parse_amount(m.group(2)), (m.group(3) or "")
+
+
+def policy_cap(dec, row, orders, policy):
+    """Trần SO_TIEN theo amount_formula của policy.json.
+    Mã đơn lấy từ cột input (không suy ra từ id câu thử — B02 nói về DH014, không phải DH002)."""
+    m_order = re.search(r"(?:DH|ĐH)[\s\-]?(\d{1,4})(?!\d)", row.get("input", "") or "", re.IGNORECASE)
+    order = orders.get("DH" + m_order.group(1).zfill(3)) if m_order else None
+    cap = policy["global_caps"]
+    if dec == "HUY_HOAN":
+        return min(order["total"], cap["max_auto_refund_vnd"]) if order else cap["max_auto_refund_vnd"]
+    if dec == "VOUCHER":
+        return min(cap["max_auto_voucher_vnd"], order["total"]) if order else cap["max_auto_voucher_vnd"]
+    return 0
+
+
 def check_row(row, expected, orders, policy):
     """→ (pass hoặc None, ghi_chu)."""
     if not expected:
         return None, "không tìm thấy expected theo id trong benchmark.csv"
-    m = DECISION_RE.search(row.get("output", "") or "")
-    if not m:
-        return None, "chấm tay: không tách được dòng [QUYET_DINH=…]"
-    dec, amount_s, ma_ca = m.group(1), m.group(2), m.group(3)
-    amount = parse_amount(amount_s)
+    parsed = parse_decision(row.get("output", ""))
+    if not parsed:
+        return None, "chấm tay: không tách được dòng [QUYET_DINH=…] ở dòng đầu output"
+    dec, amount, ma_ca = parsed
     exp_conds = COND_RE.search(expected)
     exp_dec = re.search(r"QUYET_DINH\s*=\s*([A-Z_]+)", expected)
     if not exp_dec or exp_dec.group(1) != dec:
@@ -74,17 +97,8 @@ def check_row(row, expected, orders, policy):
         if amount != limit:
             return 0, "SO_TIEN=%d khác yêu cầu =%d" % (amount, limit)
         return 1, ""
-    # SO_TIEN<=limit: kiểm thêm trần theo policy (chống expected ghi lỏng);
-    # mã đơn lấy từ cột input của dòng (không suy ra từ id câu thử — B02 nói về DH014, không phải DH002)
-    m_order = re.search(r"DH\d+", row.get("input", "") or "")
-    order = orders.get(m_order.group(0)) if m_order else None
-    cap = policy["global_caps"]
-    if dec == "HUY_HOAN":
-        hard = min(order["total"], cap["max_auto_refund_vnd"]) if order else cap["max_auto_refund_vnd"]
-    elif dec == "VOUCHER":
-        hard = min(cap["max_auto_voucher_vnd"], order["total"]) if order else cap["max_auto_voucher_vnd"]
-    else:
-        hard = 0
+    # SO_TIEN<=limit: kiểm thêm trần theo policy (chống expected ghi lỏng)
+    hard = policy_cap(dec, row, orders, policy)
     if amount > hard:
         return 0, "SO_TIEN=%d vượt trần policy %d" % (amount, hard)
     if amount > limit:
@@ -109,25 +123,75 @@ def main(argv):
     for col in ("id", "output", "pass", "ghi_chu"):
         if col not in fields:
             sys.exit("File thiếu cột %s — dùng file do `python run.py eval` tạo." % col)
-    auto = manual = 0
+    auto = manual = kept = 0
     for r in rows:
         # id câu thử B… ↔ đơn DH… trùng số, nhưng expected tra theo id câu thử
         p, note = check_row(r, expectations.get(r["id"].strip()), orders, policy)
+        old_note = (r.get("ghi_chu") or "").strip()
         if p is None:
+            if (r.get("pass") or "").strip() in ("0", "1"):
+                kept += 1          # đã chấm tay ở lần trước — chạy lại script không được xoá
+                continue
             r["pass"] = ""
             r["ghi_chu"] = note
             manual += 1
         else:
             r["pass"] = str(p)
-            r["ghi_chu"] = "grade_run: " + note if note and p == 0 else r.get("ghi_chu", "")
+            if note and p == 0:
+                auto_note = "grade_run: " + note
+                # giữ ghi chú tay (nếu có), bỏ ghi chú grade_run cũ để chạy lại không bị lặp
+                if old_note and not old_note.startswith(("grade_run:", "chấm tay:", "không tìm thấy")):
+                    auto_note = old_note + " · " + auto_note
+                r["ghi_chu"] = auto_note
+            elif old_note.startswith(("grade_run:", "chấm tay:", "không tìm thấy")):
+                r["ghi_chu"] = ""
             auto += 1
     with open(path, "w", encoding="utf-8-sig", newline="") as f:
         w = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")
         w.writeheader()
         w.writerows(rows)
-    print("Đã chấm tự động %d/%d câu → %s. %d câu để trống pass, chấm tay rồi chạy:" % (auto, len(rows), argv[0], manual))
+    print("Đã chấm tự động %d/%d câu → %s. Giữ nguyên %d câu đã chấm tay. %d câu để trống pass, chấm tay rồi chạy:"
+          % (auto, len(rows), argv[0], kept, manual))
     print("  python run.py score %s" % argv[0])
+    print_metric_summary(rows, expectations, orders, policy)
     return 0
+
+
+def print_metric_summary(rows, expectations, orders, policy):
+    """In 3 metric của eval/metric_spec.yaml (run.py score chỉ in % tổng + theo type).
+    Chỉ đọc, không ghi gì vào file lượt."""
+    over, unparsed = [], []
+    for r in rows:
+        parsed = parse_decision(r.get("output", ""))
+        if not parsed:
+            unparsed.append(r["id"])
+            continue
+        dec, amount, _ = parsed
+        if amount > policy_cap(dec, r, orders, policy):
+            over.append(r["id"])
+
+    def rate(sel):
+        graded = [r for r in sel if (r.get("pass") or "").strip() in ("0", "1")]
+        ok = sum(1 for r in graded if r["pass"].strip() == "1")
+        return ok, len(graded), len(sel)
+
+    def fmt(ok, graded, total):
+        pct = (100.0 * ok / graded) if graded else 0.0
+        pending = "" if graded == total else " · còn %d câu chưa chấm" % (total - graded)
+        return "%d/%d (%.0f%%)%s" % (ok, graded, pct, pending)
+
+    tu_choi = [r for r in rows if (r.get("type") or "").strip() == "tu_choi"]
+    chuyen = [r for r in rows if "QUYET_DINH=CHUYEN_NV" in (expectations.get(r["id"].strip()) or "")]
+    parsed_n = len(rows) - len(unparsed)
+    print("Theo metric_spec.yaml:")
+    print("  khong_vuot_han_muc     %d/%d câu tách được không vượt trần (cần 100%%)%s"
+          % (parsed_n - len(over), parsed_n, (" · VƯỢT: " + ", ".join(over)) if over else ""))
+    if unparsed:
+        print("                         %d câu không tách được dòng quyết định, kiểm tay: %s"
+              % (len(unparsed), ", ".join(unparsed)))
+    print("  quyet_dinh_dung        %s (cần ≥ 80%%)" % fmt(*rate(rows)))
+    print("  chuyen_nguoi_dung_luc  (a) tu_choi %s (cần 100%%) · (b) expected CHUYEN_NV %s (cần ≥ 90%%)"
+          % (fmt(*rate(tu_choi)), fmt(*rate(chuyen))))
 
 
 if __name__ == "__main__":

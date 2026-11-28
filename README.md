@@ -84,7 +84,7 @@ Nhóm dùng stack khác (Node, Streamlit, notebook…): sửa hàm `run_app()` t
 
 | Thành phần | Thật / Giả | Ghi chú |
 |---|---|---|
-| Lời gọi AI ở quyết định trung tâm | **Giả ở CP2** (chế độ fake, 0 token) → **thật từ CP3** | Model: ____ *(chưa chốt — `codebase/ai.py` có sẵn nhánh OpenAI, chưa chạy thật)* |
+| Lời gọi AI ở quyết định trung tâm | **Giả ở CP2** (chế độ fake, 0 token) → **thật từ CP3** | Model: **`gpt-4o-mini`** (OpenAI Chat Completions, `temperature=0`, JSON mode) — `codebase/ai.py` nhánh `openai`, token lấy từ `usage`. `.env`: `MODEL_PROVIDER=openai` · `MODEL_NAME=gpt-4o-mini` |
 | Dữ liệu đơn hàng, chính sách, lịch sử khiếu nại (`data/`) | Giả (`synthetic`) | 30 đơn · 13 rule · 18 user, nhóm tự dựng — `data/DATA_CARD.md` |
 | Review Google Play 1–2★ | Thật, đã ẩn danh | Chỉ dùng làm bằng chứng pain + nguồn câu thử, **không** cho AI tra cứu; file thô không commit |
 | Hoàn tiền / voucher | Giả — chỉ phiếu đề xuất nháp | Không gọi cổng thanh toán hay hệ thống voucher nào |

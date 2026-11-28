@@ -38,12 +38,22 @@ _MONEY_RE = re.compile(r"(\d[\d.,]*)\s*(k|nghìn|ngàn|đ|đồng|vnd)(?![a-zà-
 # Thẻ phân cách prompt — xoá khỏi tin nhắn khách để không giả được khối dữ liệu hệ thống
 _PROMPT_TAG_RE = re.compile(r"<\s*/?\s*(?:du_lieu_he_thong|tin_nhan_khach_hang)\s*>", re.IGNORECASE)
 # Khách nói rõ muốn huỷ đơn — chỉ khi đó mới được vào nhánh HUY_DON
+# (?<!\w): "k"/"ko" phải là từ riêng — không thì "o**k** hủy" bị hiểu là "không hủy".
+# Nhánh 3 bỏ qua "không hủy được" / "chưa hủy cho tôi" (khách vẫn đang đòi hủy).
 _CANCEL_NEGATION_RE = re.compile(
-    r"(?:đừng|khỏi)\s+(?:có\s+)?(?:hủy|huỷ|cancel)|(?:không|ko|k|chưa)\s+(?:muốn|cần)\s+(?:hủy|huỷ|cancel)|(?:không|ko|k)\s+(?:hủy|huỷ)(?!\s*(?:đơn\s+)?(?:được|đc|dc|nổi)\b)",
+    r"(?<!\w)(?:đừng|khỏi|dung|khoi)\s+(?:có\s+|co\s+)?(?:hủy|huỷ|huy|cancel)"
+    r"|(?<!\w)(?:không|khong|ko|k|chưa|chua)\s+(?:muốn|muon|cần|can)\s+(?:hủy|huỷ|huy|cancel)"
+    r"|(?<!\w)(?:không|khong|ko|k|chưa|chua)\s+(?:hủy|huỷ|huy)"
+    r"(?!\s*(?:đơn\s+|don\s+)?(?:được|đc|dc|duoc|nổi|noi|cho|giúp|giup|giùm|gium|hộ|ho)(?!\w))",
     re.IGNORECASE,
 )
 _CANCEL_RE = re.compile(r"hủy|huỷ|huy don|cancel|không lấy nữa|không nhận nữa|thôi không đặt", re.IGNORECASE)
-_REFUND_NEGATION_RE = re.compile(r"(?:đừng|không|ko|k|chưa|khỏi)\s+(?:có\s+)?(?:muốn\s+|cần\s+)?hoàn\s+(?:lại\s+)?tiền", re.IGNORECASE)
+# Chỉ phủ định khi khách nói rõ không muốn/cần — "sao chưa hoàn tiền cho tôi" là đang ĐÒI tiền.
+_REFUND_NEGATION_RE = re.compile(
+    r"(?<!\w)(?:đừng|khỏi)\s+(?:có\s+)?hoàn\s+(?:lại\s+)?tiền"
+    r"|(?<!\w)(?:không|ko|k|chưa)\s+(?:muốn|cần)\s+hoàn\s+(?:lại\s+)?tiền",
+    re.IGNORECASE,
+)
 _REFUND_RE = re.compile(r"hoàn\s+(?:lại\s+)?tiền|hoan\s+tien|trả\s+lại\s+tiền", re.IGNORECASE)
 _CASE_ID_TOKEN_RE = re.compile(r"\bCS-[A-Za-z0-9-]+\b", re.IGNORECASE)
 _PAREN_CASE_ID_RE = re.compile(r"\(\s*[^()]*\bCS-[A-Za-z0-9-]+\b[^()]*\)", re.IGNORECASE)
