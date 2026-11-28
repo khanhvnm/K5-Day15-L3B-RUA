@@ -5,8 +5,8 @@ Chạy từ thư mục gốc repo:
 Mở trình duyệt tại:
     http://127.0.0.1:8000
 
-Lưu ý giới hạn bản demo: trạng thái bồi thường trùng theo phiên (SESSION_COMPENSATIONS) và
-hàng chờ bản nháp (DRAFT_CASES) lưu in-memory trong tiến trình, sẽ mất khi khởi động lại server.
+Lưu ý giới hạn bản demo: trạng thái của phiên hiện tại (bồi thường trùng & bản nháp CS-... tạo trong phiên)
+lưu in-memory trong tiến trình và tự xóa khi bấm "Làm mới phiên" hoặc khởi động lại server.
 """
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
@@ -14,6 +14,7 @@ import os
 import re
 import sys
 import time
+import urllib.parse
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(BASE_DIR)
@@ -108,10 +109,14 @@ class DemoHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
-        if self.path in ("/", "/demo.html"):
+        parsed_url = urllib.parse.urlparse(self.path)
+        path = parsed_url.path
+        qs = urllib.parse.parse_qs(parsed_url.query)
+
+        if path in ("/", "/demo.html"):
             self._send_html(os.path.join(BASE_DIR, "demo.html"))
             return
-        if self.path == "/api/status":
+        if path == "/api/status":
             self._send_json(
                 200,
                 {
@@ -123,14 +128,24 @@ class DemoHandler(BaseHTTPRequestHandler):
                 },
             )
             return
-        if self.path == "/api/orders":
+        if path == "/api/orders":
             try:
                 self._send_json(200, {"orders": _load_orders_catalog()})
             except Exception as e:
                 self._send_json(500, {"error": str(e)})
             return
-        if self.path == "/api/drafts":
-            self._send_json(200, {"drafts": list(tools.DRAFT_CASES)})
+        if path == "/api/drafts":
+            sid = (qs.get("session_id") or [""])[0].strip() or None
+            drafts = tools.list_draft_cases(session_id=sid)
+            self._send_json(
+                200,
+                {
+                    "session_id": sid,
+                    "drafts": drafts,
+                    "count": len(drafts),
+                    "total_draft_cases_count": len(tools.DRAFT_CASES),
+                },
+            )
             return
         self._send_json(404, {"error": "Endpoint không tồn tại"})
 
@@ -184,7 +199,7 @@ class DemoHandler(BaseHTTPRequestHandler):
             self._send_json(
                 200,
                 {
-                    "effective_input": effective_text,
+                    "effective_input": agent._mask_pii(effective_text),
                     "session_id": session_id,
                     "raw_output": raw_output,
                     "parsed": parsed,
@@ -196,19 +211,25 @@ class DemoHandler(BaseHTTPRequestHandler):
                     "est_cost_usd": round(est_cost_usd, 6),
                     "model_provider": ai.MODEL_PROVIDER,
                     "draft_cases_count": len(tools.DRAFT_CASES),
+                    "session_drafts_count": len(tools.list_draft_cases(session_id)) if session_id else len(tools.DRAFT_CASES),
                 },
             )
             return
 
         if self.path == "/api/reset-session":
-            session_id = str(data.get("session_id") or "").strip()
+            session_id = str(data.get("session_id") or "").strip() or None
             if session_id:
                 tools.reset_session_compensations(session_id)
+                cleared_drafts = tools.reset_draft_cases(session_id)
+            else:
+                cleared_drafts = 0
             self._send_json(
                 200,
                 {
                     "ok": True,
-                    "cleared_session_id": session_id or None,
+                    "cleared_session_id": session_id,
+                    "cleared_drafts_count": cleared_drafts,
+                    "draft_cases_count": len(tools.DRAFT_CASES),
                     "active_sessions_count": len(tools.SESSION_COMPENSATIONS),
                 },
             )
@@ -217,8 +238,17 @@ class DemoHandler(BaseHTTPRequestHandler):
         if self.path == "/api/escalate":
             order_id = str(data.get("order_id") or "KHIEU_NAI").strip()
             reason = str(data.get("reason") or "Khách hàng yêu cầu nhân viên CSKH xem xét lại").strip()
-            draft = tools.escalate_to_human(order_id, reason)
-            self._send_json(200, {"draft": draft, "draft_cases_count": len(tools.DRAFT_CASES)})
+            session_id = str(data.get("session_id") or "").strip() or None
+            safe_reason = agent._mask_pii(reason)
+            draft = tools.escalate_to_human(order_id, safe_reason, session_id=session_id)
+            self._send_json(
+                200,
+                {
+                    "draft": draft,
+                    "draft_cases_count": len(tools.DRAFT_CASES),
+                    "session_drafts_count": len(tools.list_draft_cases(session_id)) if session_id else len(tools.DRAFT_CASES),
+                },
+            )
             return
 
         self._send_json(404, {"error": "Endpoint không tồn tại"})
@@ -232,7 +262,7 @@ def main():
     server = ThreadingHTTPServer(("127.0.0.1", port), DemoHandler)
     print(f"FoodResolve Demo đang chạy tại: http://127.0.0.1:{port}")
     print(f"Model hiện tại: MODEL_PROVIDER={ai.MODEL_PROVIDER} | MODEL_NAME={ai.MODEL_NAME or 'fake'}")
-    print("Lưu ý: trạng thái phiên (bồi thường trùng & nháp ca) lưu in-memory, mất khi dừng server.")
+    print("Lưu ý: trạng thái phiên (bồi thường trùng & nháp ca CS-...) lưu in-memory, tự xóa khi làm mới phiên hoặc dừng server.")
     print("Nhấn Ctrl+C để dừng.")
     try:
         server.serve_forever()

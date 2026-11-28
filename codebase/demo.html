@@ -565,9 +565,9 @@
 
             <div class="inspector-body" id="tab-inspect">
                 <div class="state-hint">
-                    Trạng thái phiên (<strong>chống bồi thường trùng</strong> &amp; <strong>hàng chờ bản nháp
-                        CS-...</strong>) lưu <em>in-memory</em> trong tiến trình demo và tự xóa khi bấm <strong>Làm mới
-                        phiên</strong> hoặc khởi động lại server.
+                    Trạng thái của phiên hiện tại (<strong>lịch sử chống bồi thường trùng</strong> &amp; <strong>các bản
+                        nháp CS-... tạo trong phiên</strong>) lưu <em>in-memory</em> trong tiến trình demo và tự xóa khi
+                    bấm <strong>Làm mới phiên</strong> hoặc khởi động lại server.
                 </div>
 
                 <div class="metric-grid">
@@ -899,7 +899,11 @@
             const res = await fetch("/api/escalate", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ order_id: orderId, reason: "Khách yêu cầu nhân viên CSKH xem lại sau quyết định TU_CHOI" })
+                body: JSON.stringify({
+                    order_id: orderId,
+                    reason: "Khách yêu cầu nhân viên CSKH xem lại sau quyết định TU_CHOI",
+                    session_id: sessionId
+                })
             });
             const json = await res.json();
             return json.draft;
@@ -1024,18 +1028,24 @@
             const oldSessionId = sessionId;
             setPendingContext("");
             offlineSessionCompensations.clear();
+            offlineCaseCounter = 1;
+            let clearedDrafts = 0;
             if (serverOnline && !offlineToggle.checked) {
                 try {
-                    await fetch("/api/reset-session", {
+                    const res = await fetch("/api/reset-session", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ session_id: oldSessionId })
                     });
+                    if (res.ok) {
+                        const j = await res.json();
+                        clearedDrafts = j.cleared_drafts_count || 0;
+                    }
                 } catch { }
             }
             sessionId = createSessionId();
             updateSessionPill();
-            chatLog.innerHTML = `<div class="msg bot"><div class="bubble">Đã làm mới phiên hội thoại (<code>${escapeHtml(sessionId)}</code>). Trạng thái bồi thường trùng của phiên cũ đã được xóa; bạn hãy gửi tin nhắn hoặc chọn kịch bản demo phía trên nhé.</div></div>`;
+            chatLog.innerHTML = `<div class="msg bot"><div class="bubble">Đã làm mới phiên hội thoại (<code>${escapeHtml(sessionId)}</code>). Đã xóa lịch sử bồi thường trùng và ${clearedDrafts} bản nháp CS-... của phiên cũ; bạn hãy gửi tin nhắn hoặc chọn kịch bản demo phía trên nhé.</div></div>`;
             document.getElementById("mDecision").textContent = "—";
             document.getElementById("mCalls").textContent = "—";
             document.getElementById("mTokens").textContent = "—";

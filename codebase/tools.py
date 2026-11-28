@@ -37,6 +37,11 @@ _DATA_CACHE: dict = {}
 # Theo dõi bồi thường trùng trong cùng một phiên (in-memory, mất khi tiến trình dừng; opt-in theo session_id)
 SESSION_COMPENSATIONS: dict = {}
 
+# Hàng chờ bản nháp chuyển nhân viên (in-memory) + ánh xạ sở hữu theo phiên để reset đồng bộ ở Web Demo
+DRAFT_CASES: list = []
+_DRAFT_SESSION_BY_MA_CA: dict = {}
+_DRAFT_SEQ: int = 0
+
 
 def _read_data(filename: str):
     """Đọc file nguồn sự thật trong data/ (có cache theo mtime). Thiếu file thì báo lỗi."""
@@ -93,6 +98,40 @@ def reset_session_compensations(session_id: Optional[str] = None) -> None:
         SESSION_COMPENSATIONS.clear()
     else:
         SESSION_COMPENSATIONS.pop(session_id, None)
+
+
+def list_draft_cases(session_id: Optional[str] = None) -> list:
+    """Lấy danh sách bản nháp CS-... (toàn bộ hoặc lọc theo đúng session_id)."""
+    if not session_id:
+        return [dict(d) for d in DRAFT_CASES]
+    return [
+        dict(d)
+        for d in DRAFT_CASES
+        if _DRAFT_SESSION_BY_MA_CA.get(d.get("ma_ca")) == session_id
+    ]
+
+
+def reset_draft_cases(session_id: Optional[str] = None) -> int:
+    """Xóa bản nháp CS-... trong hàng chờ (theo session_id hoặc toàn bộ). Trả về số bản nháp đã xóa."""
+    global _DRAFT_SEQ
+    if session_id is None:
+        removed = len(DRAFT_CASES)
+        DRAFT_CASES.clear()
+        _DRAFT_SESSION_BY_MA_CA.clear()
+        _DRAFT_SEQ = 0
+        return removed
+
+    kept = []
+    removed = 0
+    for item in DRAFT_CASES:
+        ma_ca = item.get("ma_ca")
+        if _DRAFT_SESSION_BY_MA_CA.get(ma_ca) == session_id:
+            _DRAFT_SESSION_BY_MA_CA.pop(ma_ca, None)
+            removed += 1
+        else:
+            kept.append(item)
+    DRAFT_CASES[:] = kept
+    return removed
 
 
 @tool
@@ -379,27 +418,27 @@ def check_limit(
     return _finish("VOUCHER", voucher_cap, "late_delivery_voucher", ly_do)
 
 
-# Hàng chờ bản nháp chuyển nhân viên (chỉ trong bộ nhớ của tiến trình; mỗi bản nháp cũng nằm trong trace)
-DRAFT_CASES: list = []
-
-
 @tool
-def escalate_to_human(case_id: str, reason: str) -> dict:
+def escalate_to_human(case_id: str, reason: str, session_id: Optional[str] = None) -> dict:
     """Tên: escalate_to_human — Tạo bản nháp ca chuyển nhân viên CSKH xử lý, mã ca duy nhất CS-<tham chiếu>-<số thứ tự>.
-    Input: case_id (str, mã đơn hoặc nhãn tình huống), reason (str, lý do chuyển).
+    Input: case_id (str, mã đơn hoặc nhãn tình huống), reason (str, lý do chuyển), session_id (str|None, tùy chọn gắn sở hữu phiên cho Web Demo).
     Output: dict {'ma_ca': str, 'tham_chieu': str, 'trang_thai': 'ban_nhap_cho_duyet', 'ly_do': str}.
     Tác động ra ngoài: Không gửi đi đâu — chỉ thêm bản nháp vào hàng chờ DRAFT_CASES (bộ nhớ) chờ nhân viên duyệt."""
+    global _DRAFT_SEQ
     raw = str(case_id or "").strip()
     m = re.search(r"(?:DH|ĐH)[\s\-]?(\d{1,4})(?!\d)", raw, re.IGNORECASE)
     if m:
         ref = "DH" + m.group(1).zfill(3)
     else:
         ref = re.sub(r"[^A-Za-z0-9]+", "", raw.replace("đ", "D").replace("Đ", "D")).upper()[:12] or "KHAC"
+    _DRAFT_SEQ = max(_DRAFT_SEQ, len(DRAFT_CASES)) + 1
     draft = {
-        "ma_ca": f"CS-{ref}-{len(DRAFT_CASES) + 1:03d}",
+        "ma_ca": f"CS-{ref}-{_DRAFT_SEQ:03d}",
         "tham_chieu": ref,
         "trang_thai": "ban_nhap_cho_duyet",
         "ly_do": str(reason or "").strip(),
     }
     DRAFT_CASES.append(draft)
+    if session_id:
+        _DRAFT_SESSION_BY_MA_CA[draft["ma_ca"]] = session_id
     return dict(draft)
