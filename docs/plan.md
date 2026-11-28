@@ -403,8 +403,8 @@ Thứ tự: 17:00–17:20 cả nhóm chốt policy + schema dữ liệu (mục 0
 - **Nhánh:** `eval/cp4-report`
 - **Hướng dẫn:** `eval/report.md`: % lượt 1, lượt 2 so với chuẩn đạt · **≥3 lỗi** (input · output · vì sao sai), gom theo nhóm · đã sửa gì · lỗi còn lại. `eval/README.md` mục 5–6 (bảng run ID · model · cấu hình · kết quả).
 - **Checklist output:**
-  - [ ] `eval/report.md` đủ ≥3 lỗi có tên nhóm
-  - [ ] `eval/README.md` đọc một trang là hiểu: dataset → câu thử → metric → các lượt → lỗi chính
+  - [x] `eval/report.md` đủ ≥3 lỗi có tên nhóm *(mục 2: 3 nhóm + 3 lỗi cụ thể; mục 4: 5 lỗi còn lại xếp theo mức hại)*
+  - [x] `eval/README.md` đọc một trang là hiểu: dataset → câu thử → metric → các lượt → lỗi chính *(mục 1–6; mục 6 cấu hình từng lượt + lỗi chính)*
 
 ### CP4-3 · Mô phỏng chi phí — **Duy Thành**
 - **Nhánh:** `cost/cp4-simulate`
