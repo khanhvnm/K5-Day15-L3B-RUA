@@ -275,23 +275,38 @@ class TestCP4Upgrades(unittest.TestCase):
         )["output"]
         self.assertIn("QUYET_DINH=CHUYEN_NV | SO_TIEN=0", out_mix2.splitlines()[0])
 
-    def test_pii_tu_cung_cap_khong_bi_chan_nham_nhung_bi_an_ca_input_draft_va_output(self):
-        """Khách tự cung cấp SĐT/địa chỉ/email không bị chặn thành SECURITY_PII TU_CHOI,
-        NHƯNG bị ẩn sạch trước khi gửi model, trong bản nháp CS-... và trong câu trả lời đầu ra."""
-        cap = {}
-        self._stub(_full_llm("VOUCHER", 30000, phan_loai="IN_SCOPE", request_type="KHIEU_NAI_TRE"), capture=cap)
-        msg = (
-            "Đơn DH015 giao trễ quá, mình gửi SĐT của mình 0912345678, email khach@gmail.com "
-            "và địa chỉ nhà của mình: số 15 ngõ 45 Trần Duy Hưng, Cầu Giấy, Hà Nội để nhân viên liên hệ nhé."
-        )
-        self.assertFalse(agent._detect_security_risks(msg)["pii"])
-        out = agent.answer(msg)["output"]
-        self.assertIn("QUYET_DINH=VOUCHER | SO_TIEN=30000", out.splitlines()[0])
-        for leaked in ("0912345678", "khach@gmail.com", "Trần Duy Hưng", "Cầu Giấy"):
-            self.assertNotIn(leaked, cap["user"], f"Lộ {leaked} vào prompt gửi model")
-            self.assertNotIn(leaked, out, f"Lộ {leaked} ra output")
+    def test_pii_tu_cung_cap_va_doi_pii_nguoi_khac_deu_bi_chan(self):
+        """Mọi PII (SĐT, email, CCCD, địa chỉ cá nhân) kể cả do khách tự cung cấp lẫn đòi PII người khác đều bị chặn TU_CHOI/0,
+        đồng thời không lộ PII vào prompt gửi model hay câu trả lời đầu ra."""
+        for msg, leaked_tokens in (
+            (
+                "Đơn DH015 giao trễ quá, mình gửi SĐT của mình 0912345678, email khach@gmail.com "
+                "và địa chỉ nhà của mình: số 15 ngõ 45 Trần Duy Hưng, Cầu Giấy, Hà Nội để nhân viên liên hệ nhé.",
+                ("0912345678", "khach@gmail.com", "Trần Duy Hưng", "Cầu Giấy"),
+            ),
+            (
+                "Đơn DH015 trễ lâu rồi, tôi nhắn số điện thoại của tôi 0987654321 cho bên bạn hỗ trợ.",
+                ("0987654321",),
+            ),
+            (
+                "Đơn DH015 kiểm tra theo số CCCD 001200012345 giúp tôi.",
+                ("001200012345",),
+            ),
+            (
+                "Đơn DH015 giao tới chung cư Vinhomes Ocean Park, Gia Lâm, Hà Nội nhé.",
+                ("Vinhomes", "Gia Lâm"),
+            ),
+        ):
+            cap = {}
+            self._stub(_full_llm("VOUCHER", 30000, phan_loai="IN_SCOPE", request_type="KHIEU_NAI_TRE"), capture=cap)
+            self.assertTrue(agent._detect_security_risks(msg)["pii"], msg)
+            out = agent.answer(msg)["output"]
+            self.assertIn("QUYET_DINH=TU_CHOI | SO_TIEN=0 | MA_CA=-", out.splitlines()[0], msg)
+            for leaked in leaked_tokens:
+                self.assertNotIn(leaked, cap["user"], f"Lộ {leaked} vào prompt gửi model")
+                self.assertNotIn(leaked, out, f"Lộ {leaked} ra output")
 
-        # Đổi địa chỉ có chứa địa chỉ thật -> vẫn OUT_OF_SCOPE (CHUYEN_NV) và ẩn sạch địa chỉ ở prompt, draft và output
+        # Đổi địa chỉ có chứa địa chỉ thật -> ưu tiên mục 1 OUT_OF_SCOPE (CHUYEN_NV) và vẫn ẩn sạch địa chỉ ở prompt, draft và output
         cap2 = {}
         self._stub(
             _full_llm(

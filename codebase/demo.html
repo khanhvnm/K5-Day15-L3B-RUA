@@ -807,9 +807,10 @@
             const askDriverPii = /(?:sđt|số\s*điện\s*thoại|số\s*đt|email|cccd|cmnd|địa\s*chỉ\s*(?:nhà|riêng|cá\s*nhân)|thông\s*tin\s*cá\s*nhân)\s*(?:của\s+)?(?:tài\s*xế|shipper|nhân\s*viên|chủ\s*quán|người\s+khác)/.test(lower);
             const hasRawOrSelfPii = /(?:\+84|\b0)\d{9}\b|(?:\+84[\s.\-]?|\b0)\d{2,3}[\s.\-]\d{3}[\s.\-]\d{3,4}\b/.test(lower)
                 || /\b[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}\b/.test(lower)
-                || /\b(?:cccd|cmnd|căn\s*cước)\b/.test(lower)
+                || /\b(?:cccd|cmnd|căn\s*cước)\b|\b\d{12}\b/.test(lower)
+                || /\b(?:số\s+nhà\s+\d+|(?:ngõ|ngách|hẻm|chung\s*cư|tòa\s*nhà)\s+\S+)/.test(lower)
                 || /(?:gửi|nhắn|cung\s*cấp|để\s*lại|ghi|cho|đưa)\s+(?:lại\s+|thêm\s+)?(?:sđt|số\s*điện\s*thoại|số\s*đt|email|cccd|cmnd|thông\s*tin\s*(?:cá\s*nhân|liên\s*hệ)|địa\s*chỉ\s*(?:nhà|riêng|cá\s*nhân))/.test(lower)
-                || /(?:sđt|số\s*điện\s*thoại|số\s*đt|email|cccd|cmnd|thông\s*tin\s*(?:cá\s*nhân|liên\s*hệ)|địa\s*chỉ\s*(?:nhà|riêng|cá\s*nhân))\s*(?:mới\s+)?(?:của\s+)?(?:tôi|mình|em)\b/.test(lower);
+                || /(?:sđt|số\s*điện\s*thoại|số\s*đt|email|cccd|cmnd|thông\s*tin\s*(?:cá\s*nhân|liên\s*hệ)|địa\s*chỉ(?:\s+(?:nhà|riêng|cá\s*nhân|mới))?)\s*(?:mới\s+)?(?:của\s+)?(?:tôi|mình|em)\b/.test(lower);
             const isInjection = /system\s+update|bỏ\s*qua.*quy\s*định|ignore.*previous/.test(lower);
             const isNonFoodOos = /giao\s+(?:thiếu|sai)|thiếu\s+món|đổi\s+.*địa\s*chỉ|thái\s*độ\s+tài\s*xế/.test(lower);
 
